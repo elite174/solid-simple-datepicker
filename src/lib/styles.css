@@ -1,0 +1,113 @@
+.SimpleDatepicker {
+  border-radius: 8px;
+  box-shadow: 0px 0.6px 1.8px rgba(0, 0, 0, 0.035),
+    0px 5px 14px rgba(0, 0, 0, 0.07);
+  width: fit-content;
+
+  padding: 0.5rem;
+}
+
+.SimpleDatepicker ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.SimpleDatepicker ::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: #888;
+}
+
+.SimpleDatepicker-SectionContainer {
+  display: flex;
+  gap: 1rem;
+
+  overflow: hidden;
+}
+
+.SimpleDatepicker-List,
+.SimpleDatepicker-ListItem,
+.SimpleDatepicker-Button,
+.SimpleDatepicker-ListWrapper {
+  all: unset;
+}
+
+.SimpleDatepicker-ListCaption {
+  color: #999;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.SimpleDatepicker-ListWrapper_month .SimpleDatepicker-ListCaption,
+.SimpleDatepicker-ListWrapper_year .SimpleDatepicker-ListCaption {
+  padding-right: 6px;
+}
+
+.SimpleDatepicker-List {
+  height: 10rem;
+}
+
+.SimpleDatepicker-ListTitle {
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.SimpleDatepicker-ListWrapper {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.25rem;
+}
+
+.SimpleDatepicker-Button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+  height: 2rem;
+  width: 100%;
+  border-radius: 4px;
+
+  cursor: pointer;
+
+  transition: background-color 50ms ease-in-out;
+}
+
+.SimpleDatepicker-ListWrapper_year .SimpleDatepicker-Button,
+.SimpleDatepicker-ListWrapper_month .SimpleDatepicker-Button {
+  padding-inline: 0.5rem;
+}
+
+.SimpleDatepicker-ListWrapper_day .SimpleDatepicker-Button {
+  width: 2rem;
+}
+
+.SimpleDatepicker-Button[disabled] {
+  pointer-events: none;
+  color: #aaa;
+}
+
+.SimpleDatepicker-Button:hover,
+.SimpleDatepicker-Button:focus {
+  background-color: #bfdafe;
+}
+
+.SimpleDatepicker-Button:focus {
+  outline: 1px solid #1e4cd7;
+}
+
+.SimpleDatepicker-Button_selected {
+  color: white;
+  background-color: #1e4cd7;
+}
+
+.SimpleDatepicker-ListWrapper_day .SimpleDatepicker-List {
+  display: grid;
+  grid-template-columns: repeat(7, max-content);
+  grid-template-rows: auto;
+}
+
+.SimpleDatepicker-ListWrapper_year .SimpleDatepicker-List,
+.SimpleDatepicker-ListWrapper_month .SimpleDatepicker-List {
+  overflow-y: auto;
+}
