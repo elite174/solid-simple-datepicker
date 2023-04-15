@@ -1,12 +1,12 @@
+import type { JSX, ParentComponent, VoidComponent } from "solid-js";
 import {
-  JSX,
-  ParentComponent,
+  For,
   Show,
-  VoidComponent,
   createComputed,
+  createMemo,
   createSignal,
+  mergeProps,
 } from "solid-js";
-import { For, createMemo, mergeProps } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
 export type DatePickerSection = "d" | "m" | "y";
@@ -21,22 +21,75 @@ type Locale = {
 type LocalDate = Record<Section, number | undefined>;
 
 export interface DatePickerProps {
+  /** Selected date */
   date?: Date;
+  /**
+   * Start year to show in year list
+   * @default 1960
+   */
   startYear?: number;
+  /**
+   * End year to show in year list
+   * @default 2060
+   */
   endYear?: number;
-  disabledMonths?: number[];
+  /**
+   * Days to disable
+   * @type Number from 1 to 31
+   */
   disabledDays?: number[];
+
+  /**
+   * Months to disable
+   * @type Number from 0 to 11
+   */
+  disabledMonths?: number[];
+  /**
+   * Years to disable
+   */
   disabledYears?: number[];
+  /**
+   * I18N object
+   */
   locale?: Locale;
+  /**
+   * The order in which datepicker sections should be displayed
+   * @default "m-d-y"
+   */
   order?: `${DatePickerSection}-${DatePickerSection}-${DatePickerSection}`;
+  /**
+   * Extra class applied to the container element
+   */
   class?: string;
+  /**
+   * Tag for the container element
+   * @default "div"
+   */
   tag?: string;
-  scrollSnap?: boolean;
+  /**
+   * Is footer visible
+   * @default true
+   */
   footer?: boolean;
+  /**
+   * The callback is called when the date is valid
+   * It won't be called when the date is unfilled (e.g. month is not selected)
+   * or the date is invalid (e.g. Feb 31 2000)
+   */
   onChange?: (date: Date) => void;
+  /**
+   * The callback is called when "Done" button of default footer component is clicked
+   */
   onFooterDone?: VoidFunction;
+  /**
+   * Custom footer component to show
+   */
   FooterComponent?: ParentComponent;
 }
+
+const DEFAULT_START_YEAR = 1960;
+const DEFAULT_END_YEAR = 2060;
+const DEFAULT_ORDER: DatePickerProps["order"] = "m-d-y";
 
 const MONTH_LOCALE = Object.freeze({
   jan: "January",
@@ -72,8 +125,6 @@ const DEFAULT_LOCALE = Object.freeze({
 const MONTHS_NAMES = Object.keys(MONTH_LOCALE) as Month[];
 const MONTHS = new Array(12).fill(0).map((_, index) => index);
 const DAYS = new Array(31).fill(0).map((_, index) => index + 1);
-
-const DEFAULT_ORDER: DatePickerProps["order"] = "m-d-y";
 
 interface CommonComponentProps {
   locale: Required<Locale>;
@@ -225,8 +276,8 @@ const YearRenderer: VoidComponent<
 > = (initialProps) => {
   const props = mergeProps(
     {
-      startYear: 1960,
-      endYear: new Date().getFullYear() + 50,
+      startYear: DEFAULT_START_YEAR,
+      endYear: DEFAULT_END_YEAR,
     },
     initialProps
   );
@@ -280,6 +331,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     {
       order: DEFAULT_ORDER satisfies DatePickerProps["order"],
       tag: "div",
+      footer: true
     },
     initialProps
   );
@@ -304,12 +356,6 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
   // update local date if external date changes
   createComputed(() => {
     if (props.date) {
-      console.log(props.date);
-      console.log({
-        year: props.date.getFullYear(),
-        month: props.date.getMonth(),
-        day: props.date.getDate(),
-      });
       setLocalDate({
         year: props.date.getFullYear(),
         month: props.date.getMonth(),
@@ -402,13 +448,13 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
           onSelect={(day) => handleChange({ day })}
         />
       </div>
-      <Show
-        when={props.FooterComponent}
-        fallback={<Footer locale={locale()} onDone={props.onFooterDone} />}
-      >
-        {(Component) => {
-          return <Dynamic component={Component()} />;
-        }}
+      <Show when={props.footer}>
+        <Dynamic
+          component={
+            props.FooterComponent ??
+            (() => <Footer locale={locale()} onDone={props.onFooterDone} />)
+          }
+        />
       </Show>
     </Dynamic>
   );
