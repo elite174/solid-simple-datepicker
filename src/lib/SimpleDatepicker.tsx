@@ -62,6 +62,10 @@ export interface DatePickerProps {
    */
   class?: string;
   /**
+   * Extra styles applied to the container element
+   */
+  style?: JSX.StyleHTMLAttributes<HTMLElement>;
+  /**
    * Tag for the container element
    * @default "div"
    */
@@ -92,18 +96,18 @@ const DEFAULT_END_YEAR = 2060;
 const DEFAULT_ORDER: DatePickerProps["order"] = "m-d-y";
 
 const MONTH_LOCALE = Object.freeze({
-  jan: "January",
-  feb: "February",
-  mar: "March",
-  apr: "April",
+  jan: "Jan",
+  feb: "Feb",
+  mar: "Mar",
+  apr: "Apr",
   may: "May",
-  jun: "June",
-  jul: "July",
-  aug: "August",
-  sep: "September",
-  oct: "October",
-  nov: "Noveber",
-  dec: "December",
+  jun: "Jun",
+  jul: "Jul",
+  aug: "Aug",
+  sep: "Sep",
+  oct: "Oct",
+  nov: "Nov",
+  dec: "Dec",
 });
 
 const SECTION_LOCALE = Object.freeze({
@@ -331,7 +335,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     {
       order: DEFAULT_ORDER satisfies DatePickerProps["order"],
       tag: "div",
-      footer: true
+      footer: true,
     },
     initialProps
   );
@@ -420,6 +424,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
         SimpleDatepicker: true,
         [props.class ?? ""]: true,
       }}
+      style={props.style}
     >
       <div class="SimpleDatepicker-SectionContainer">
         <YearRenderer

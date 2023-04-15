@@ -45,6 +45,7 @@
 }
 
 .SimpleDatepicker-List {
+  padding-inline: var(--scrollbarSize);
   height: 10rem;
 }
 
@@ -75,9 +76,9 @@
 }
 
 .SimpleDatepicker-ListWrapper_year .SimpleDatepicker-Button,
-.SimpleDatepicker-ListWrapper_month .SimpleDatepicker-Button {
-  padding-inline: 0.5rem;
-  width: 100%;
+.SimpleDatepicker-ListWrapper_month .SimpleDatepicker-Button,
+.SimpleDatepicker-Footer .SimpleDatepicker-Button {
+  width: 4rem;
 }
 
 .SimpleDatepicker-Footer .SimpleDatepicker-Button {
@@ -129,7 +130,7 @@
   display: flex;
   flex-direction: row-reverse;
 
-  padding: 0.5rem;
+  padding: 0.5rem calc(1.125rem + var(--scrollbarSize));
 
   border-top: 1px solid #eee;
 }
