@@ -4,9 +4,7 @@ import {
   Show,
   VoidComponent,
   createComputed,
-  createEffect,
   createSignal,
-  on,
 } from "solid-js";
 import { For, createMemo, mergeProps } from "solid-js";
 import { Dynamic } from "solid-js/web";
@@ -17,7 +15,7 @@ type Month = keyof typeof MONTH_LOCALE;
 type Section = keyof typeof SECTION_LOCALE;
 
 type Locale = {
-  [K in Month | Section]?: string;
+  [K in keyof typeof DEFAULT_LOCALE]?: string;
 };
 
 type LocalDate = Record<Section, number | undefined>;
@@ -34,7 +32,9 @@ export interface DatePickerProps {
   class?: string;
   tag?: string;
   scrollSnap?: boolean;
+  footer?: boolean;
   onChange?: (date: Date) => void;
+  onFooterDone?: VoidFunction;
   FooterComponent?: ParentComponent;
 }
 
@@ -60,7 +60,13 @@ const SECTION_LOCALE = Object.freeze({
 });
 
 const FOOTER_LOCALE = Object.freeze({
-  save: "Save",
+  done: "Done",
+});
+
+const DEFAULT_LOCALE = Object.freeze({
+  ...MONTH_LOCALE,
+  ...SECTION_LOCALE,
+  ...FOOTER_LOCALE,
 });
 
 const MONTHS_NAMES = Object.keys(MONTH_LOCALE) as Month[];
@@ -69,17 +75,20 @@ const DAYS = new Array(31).fill(0).map((_, index) => index + 1);
 
 const DEFAULT_ORDER: DatePickerProps["order"] = "m-d-y";
 
-interface CommonRenererProps {
-  onSelect: (dateParam: number) => void;
-  style?: JSX.HTMLAttributes<HTMLElement>["style"];
+interface CommonComponentProps {
+  locale: Required<Locale>;
 }
 
-const Footer: VoidComponent<{
-  locale?: typeof FOOTER_LOCALE;
-  onDone?: VoidFunction;
-}> = (initialProps) => {
-  const props = mergeProps({ locale: FOOTER_LOCALE }, initialProps);
+interface CommonRendererProps extends CommonComponentProps {
+  style?: JSX.HTMLAttributes<HTMLElement>["style"];
+  onSelect: (dateParam: number) => void;
+}
 
+const Footer: VoidComponent<
+  CommonComponentProps & {
+    onDone?: VoidFunction;
+  }
+> = (props) => {
   return (
     <div class="SimpleDatepicker-Footer">
       <button
@@ -87,21 +96,19 @@ const Footer: VoidComponent<{
         type="button"
         class="SimpleDatepicker-Button SimpleDatepicker-Button_selected"
       >
-        {props.locale.save}
+        {props.locale.done}
       </button>
     </div>
   );
 };
 
 const DayRenderer: VoidComponent<
-  CommonRenererProps & {
+  CommonRendererProps & {
     selectedYear?: number;
     selectedMonth?: number;
     selectedDay?: number;
-  } & Pick<DatePickerProps, "disabledDays" | "locale">
-> = (initialProps) => {
-  const props = mergeProps({ locale: { ...SECTION_LOCALE } }, initialProps);
-
+  } & Pick<DatePickerProps, "disabledDays">
+> = (props) => {
   const disabledDays = createMemo(() => new Set(props.disabledDays ?? []));
 
   const daysInMonth = createMemo(() =>
@@ -159,16 +166,11 @@ const DayRenderer: VoidComponent<
 };
 
 const MonthRenderer: VoidComponent<
-  CommonRenererProps & { selectedYear?: number; selectedMonth?: number } & Pick<
-      DatePickerProps,
-      "disabledMonths" | "locale"
-    >
-> = (initialProps) => {
-  const props = mergeProps(
-    { locale: { ...MONTH_LOCALE, ...SECTION_LOCALE } },
-    initialProps
-  );
-
+  CommonRendererProps & {
+    selectedYear?: number;
+    selectedMonth?: number;
+  } & Pick<DatePickerProps, "disabledMonths" | "locale">
+> = (props) => {
   const disabledMonths = createMemo(() => new Set(props.disabledMonths ?? []));
 
   const isMonthDisabled = (month: number) => disabledMonths().has(month);
@@ -214,7 +216,7 @@ const MonthRenderer: VoidComponent<
 };
 
 const YearRenderer: VoidComponent<
-  CommonRenererProps & {
+  CommonRendererProps & {
     selectedYear?: number;
   } & Pick<
       DatePickerProps,
@@ -225,7 +227,6 @@ const YearRenderer: VoidComponent<
     {
       startYear: 1960,
       endYear: new Date().getFullYear() + 50,
-      locale: SECTION_LOCALE,
     },
     initialProps
   );
@@ -277,7 +278,6 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
 ) => {
   const props = mergeProps(
     {
-      locale: SECTION_LOCALE,
       order: DEFAULT_ORDER satisfies DatePickerProps["order"],
       tag: "div",
     },
@@ -318,7 +318,12 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     }
   });
 
-  const sections = () => props.order.split("-");
+  const locale = createMemo(() => ({
+    ...DEFAULT_LOCALE,
+    ...props.locale,
+  }));
+
+  const sections = createMemo(() => props.order.split("-"));
 
   const handleChange = (patch: Partial<LocalDate>) => {
     const newLocalDate = { ...localDate(), ...patch };
@@ -372,6 +377,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     >
       <div class="SimpleDatepicker-SectionContainer">
         <YearRenderer
+          locale={locale()}
           style={{ order: sections().indexOf("y") }}
           selectedYear={localDate().year}
           startYear={props.startYear}
@@ -379,6 +385,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
           onSelect={(year) => handleChange({ year })}
         />
         <MonthRenderer
+          locale={locale()}
           style={{ order: sections().indexOf("m") }}
           selectedMonth={localDate().month}
           selectedYear={localDate().year}
@@ -386,6 +393,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
           onSelect={(month) => handleChange({ month })}
         />
         <DayRenderer
+          locale={locale()}
           style={{ order: sections().indexOf("d") }}
           selectedDay={localDate().day}
           selectedMonth={localDate().month}
@@ -394,7 +402,10 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
           onSelect={(day) => handleChange({ day })}
         />
       </div>
-      <Show when={props.FooterComponent} fallback={<Footer />}>
+      <Show
+        when={props.FooterComponent}
+        fallback={<Footer locale={locale()} onDone={props.onFooterDone} />}
+      >
         {(Component) => {
           return <Dynamic component={Component()} />;
         }}
