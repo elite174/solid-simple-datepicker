@@ -1,4 +1,10 @@
-import { JSX, ParentComponent, VoidComponent, createSignal } from "solid-js";
+import {
+  JSX,
+  ParentComponent,
+  Show,
+  VoidComponent,
+  createSignal,
+} from "solid-js";
 import { For, createMemo, mergeProps } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
@@ -41,21 +47,44 @@ const MONTH_LOCALE = Object.freeze({
   dec: "December",
 });
 
-const MONTHS_NAMES = Object.keys(MONTH_LOCALE) as Month[];
-const MONTHS = new Array(12).fill(0).map((_, index) => index + 1);
-const DAYS = new Array(31).fill(0).map((_, index) => index + 1);
-
 const SECTION_LOCALE = Object.freeze({
   year: "Year",
   month: "Month",
   day: "Day",
 });
 
+const FOOTER_LOCALE = Object.freeze({
+  save: "Save",
+});
+
+const MONTHS_NAMES = Object.keys(MONTH_LOCALE) as Month[];
+const MONTHS = new Array(12).fill(0).map((_, index) => index + 1);
+const DAYS = new Array(31).fill(0).map((_, index) => index + 1);
+
 const DEFAULT_ORDER: DatePickerProps["order"] = "m-d-y";
 
 interface CommonRenererProps {
   style?: JSX.HTMLAttributes<HTMLElement>["style"];
 }
+
+const Footer: VoidComponent<{
+  locale?: typeof FOOTER_LOCALE;
+  onDone?: VoidFunction;
+}> = (initialProps) => {
+  const props = mergeProps({ locale: FOOTER_LOCALE }, initialProps);
+
+  return (
+    <div class="SimpleDatepicker-Footer">
+      <button
+        onClick={props.onDone}
+        type="button"
+        class="SimpleDatepicker-Button SimpleDatepicker-Button_selected"
+      >
+        {props.locale.save}
+      </button>
+    </div>
+  );
+};
 
 const DayRenderer: VoidComponent<
   CommonRenererProps & {
@@ -289,7 +318,11 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
           disabledDays={props.disabledDays}
         />
       </div>
-      <Dynamic component={props.FooterComponent} />
+      <Show when={props.FooterComponent} fallback={<Footer />}>
+        {(Component) => {
+          return <Dynamic component={Component()} />;
+        }}
+      </Show>
     </Dynamic>
   );
 };

@@ -3,8 +3,6 @@
   box-shadow: 0px 0.6px 1.8px rgba(0, 0, 0, 0.035),
     0px 5px 14px rgba(0, 0, 0, 0.07);
   width: fit-content;
-
-  padding: 0.5rem;
 }
 
 .SimpleDatepicker ::-webkit-scrollbar {
@@ -20,6 +18,8 @@
 .SimpleDatepicker-SectionContainer {
   display: flex;
   gap: 1rem;
+
+  padding: 0.5rem;
 
   overflow: hidden;
 }
@@ -65,7 +65,6 @@
 
   box-sizing: border-box;
   height: 2rem;
-  width: 100%;
   border-radius: 4px;
 
   cursor: pointer;
@@ -75,6 +74,14 @@
 
 .SimpleDatepicker-ListWrapper_year .SimpleDatepicker-Button,
 .SimpleDatepicker-ListWrapper_month .SimpleDatepicker-Button {
+  padding-inline: 0.5rem;
+  width: 100%;
+}
+
+.SimpleDatepicker-Footer .SimpleDatepicker-Button {
+  background-color: #1e4cd7;
+  color: white;
+
   padding-inline: 0.5rem;
 }
 
@@ -89,16 +96,20 @@
 
 .SimpleDatepicker-Button:hover,
 .SimpleDatepicker-Button:focus {
-  background-color: #bfdafe;
+  background-color: #94c4fc;
 }
 
 .SimpleDatepicker-Button:focus {
   outline: 1px solid #1e4cd7;
 }
 
-.SimpleDatepicker-Button_selected {
+.SimpleDatepicker-Button.SimpleDatepicker-Button_selected {
   color: white;
   background-color: #1e4cd7;
+}
+
+.SimpleDatepicker-Button_selected:hover {
+  background-color: #1f3eae;
 }
 
 .SimpleDatepicker-ListWrapper_day .SimpleDatepicker-List {
@@ -110,4 +121,13 @@
 .SimpleDatepicker-ListWrapper_year .SimpleDatepicker-List,
 .SimpleDatepicker-ListWrapper_month .SimpleDatepicker-List {
   overflow-y: auto;
+}
+
+.SimpleDatepicker-Footer {
+  display: flex;
+  flex-direction: row-reverse;
+
+  padding: 0.5rem;
+
+  border-top: 1px solid #eee;
 }
