@@ -3,7 +3,10 @@ import {
   ParentComponent,
   Show,
   VoidComponent,
+  createComputed,
+  createEffect,
   createSignal,
+  on,
 } from "solid-js";
 import { For, createMemo, mergeProps } from "solid-js";
 import { Dynamic } from "solid-js/web";
@@ -17,6 +20,8 @@ type Locale = {
   [K in Month | Section]?: string;
 };
 
+type LocalDate = Record<Section, number | undefined>;
+
 export interface DatePickerProps {
   date?: Date;
   startYear?: number;
@@ -28,6 +33,7 @@ export interface DatePickerProps {
   order?: `${DatePickerSection}-${DatePickerSection}-${DatePickerSection}`;
   class?: string;
   tag?: string;
+  scrollSnap?: boolean;
   onChange?: (date: Date) => void;
   FooterComponent?: ParentComponent;
 }
@@ -58,12 +64,13 @@ const FOOTER_LOCALE = Object.freeze({
 });
 
 const MONTHS_NAMES = Object.keys(MONTH_LOCALE) as Month[];
-const MONTHS = new Array(12).fill(0).map((_, index) => index + 1);
+const MONTHS = new Array(12).fill(0).map((_, index) => index);
 const DAYS = new Array(31).fill(0).map((_, index) => index + 1);
 
 const DEFAULT_ORDER: DatePickerProps["order"] = "m-d-y";
 
 interface CommonRenererProps {
+  onSelect: (dateParam: number) => void;
   style?: JSX.HTMLAttributes<HTMLElement>["style"];
 }
 
@@ -99,7 +106,7 @@ const DayRenderer: VoidComponent<
 
   const daysInMonth = createMemo(() =>
     props.selectedYear !== undefined && props.selectedMonth !== undefined
-      ? new Date(props.selectedYear, props.selectedMonth, 0).getDate()
+      ? new Date(props.selectedYear, props.selectedMonth + 1, 0).getDate()
       : 31
   );
 
@@ -133,11 +140,13 @@ const DayRenderer: VoidComponent<
           {(day) => (
             <li class="SimpleDatepicker-ListItem">
               <button
+                type="button"
                 classList={{
                   "SimpleDatepicker-Button": true,
                   "SimpleDatepicker-Button_selected": isDaySelected(day),
                 }}
                 disabled={isDayDisabled(day)}
+                onClick={() => props.onSelect(day)}
               >
                 <time datetime={getDateTimeString(day)}>{day}</time>
               </button>
@@ -184,14 +193,16 @@ const MonthRenderer: VoidComponent<
           {(month) => (
             <li class="SimpleDatepicker-ListItem">
               <button
+                type="button"
                 classList={{
                   "SimpleDatepicker-Button": true,
                   "SimpleDatepicker-Button_selected": isMonthSelected(month),
                 }}
                 disabled={isMonthDisabled(month)}
+                onClick={() => props.onSelect(month)}
               >
                 <time datetime={getDateTimeString(month)}>
-                  {props.locale[MONTHS_NAMES[month - 1] as Month]}
+                  {props.locale[MONTHS_NAMES[month] as Month]}
                 </time>
               </button>
             </li>
@@ -203,7 +214,9 @@ const MonthRenderer: VoidComponent<
 };
 
 const YearRenderer: VoidComponent<
-  CommonRenererProps & { selectedYear?: number } & Pick<
+  CommonRenererProps & {
+    selectedYear?: number;
+  } & Pick<
       DatePickerProps,
       "startYear" | "endYear" | "disabledYears" | "locale"
     >
@@ -241,11 +254,13 @@ const YearRenderer: VoidComponent<
           {(year) => (
             <li class="SimpleDatepicker-ListItem">
               <button
+                type="button"
                 classList={{
                   "SimpleDatepicker-Button": true,
                   "SimpleDatepicker-Button_selected": isYearSelected(year),
                 }}
                 disabled={isYearDisabled(year)}
+                onClick={() => props.onSelect(year)}
               >
                 <time datetime={`${year}`}>{year}</time>
               </button>
@@ -269,53 +284,114 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     initialProps
   );
 
-  const [localDate, setLocalDate] = createSignal<
-    Record<Section, number | undefined>
-  >({
-    day: undefined,
-    month: undefined,
-    year: undefined,
+  const [localDate, setLocalDate] = createSignal<LocalDate>(
+    (() =>
+      props.date
+        ? {
+            year: props.date.getFullYear(),
+            month: props.date.getMonth(),
+            day: props.date.getDate(),
+          }
+        : { year: undefined, month: undefined, day: undefined })(),
+    {
+      equals: (prev, next) =>
+        prev.day === next.day &&
+        prev.month === next.month &&
+        prev.year === next.year,
+    }
+  );
+
+  // update local date if external date changes
+  createComputed(() => {
+    if (props.date) {
+      console.log(props.date);
+      console.log({
+        year: props.date.getFullYear(),
+        month: props.date.getMonth(),
+        day: props.date.getDate(),
+      });
+      setLocalDate({
+        year: props.date.getFullYear(),
+        month: props.date.getMonth(),
+        day: props.date.getDate(),
+      });
+    }
   });
-
-  const selectedDay = () =>
-    props.date ? props.date.getDate() : localDate().day;
-
-  const selectedMonth = () =>
-    props.date ? props.date.getMonth() : localDate().month;
-
-  const selectedYear = () =>
-    props.date ? props.date.getFullYear() : localDate().year;
 
   const sections = () => props.order.split("-");
 
-  const handleChange = (year?: number, month?: number, day?: number) => {
-    setLocalDate((date) => ({ ...date, ...{ year, month, day } }));
+  const handleChange = (patch: Partial<LocalDate>) => {
+    const newLocalDate = { ...localDate(), ...patch };
+
+    // If smth is undefined don't call onChange
+    if (
+      newLocalDate.day === undefined ||
+      newLocalDate.month === undefined ||
+      newLocalDate.year === undefined
+    ) {
+      setLocalDate(newLocalDate);
+
+      return;
+    }
+
+    // If the date is invalid (like Date(2000, 1, 31) - Feb 31 2000)
+    // update local date and return
+    if (
+      new Date(
+        newLocalDate.year,
+        newLocalDate.month,
+        newLocalDate.day
+      ).getMonth() !== newLocalDate.month
+    ) {
+      newLocalDate.day = undefined;
+      setLocalDate(newLocalDate);
+
+      return;
+    }
+
+    setLocalDate(newLocalDate);
+
+    if (props.onChange) {
+      const date = new Date(
+        newLocalDate.year,
+        newLocalDate.month,
+        newLocalDate.day
+      );
+
+      props.onChange(date);
+    }
   };
 
   return (
     <Dynamic
       component={props.tag}
-      classList={{ SimpleDatepicker: true, [props.class ?? ""]: true }}
+      classList={{
+        SimpleDatepicker: true,
+        [props.class ?? ""]: true,
+      }}
     >
       <div class="SimpleDatepicker-SectionContainer">
         <YearRenderer
           style={{ order: sections().indexOf("y") }}
-          selectedYear={selectedYear()}
+          selectedYear={localDate().year}
           startYear={props.startYear}
           endYear={props.endYear}
+          onSelect={(year) => handleChange({ year })}
         />
         <MonthRenderer
           style={{ order: sections().indexOf("m") }}
-          selectedMonth={selectedMonth()}
-          selectedYear={selectedYear()}
+          selectedMonth={localDate().month}
+          selectedYear={localDate().year}
           disabledMonths={props.disabledMonths}
+          onSelect={(month) => handleChange({ month })}
         />
         <DayRenderer
           style={{ order: sections().indexOf("d") }}
-          selectedDay={selectedDay()}
-          selectedMonth={selectedMonth()}
-          selectedYear={selectedYear()}
+          selectedDay={localDate().day}
+          selectedMonth={localDate().month}
+          selectedYear={localDate().year}
           disabledDays={props.disabledDays}
+          onSelect={(day) => handleChange({ day })}
         />
       </div>
       <Show when={props.FooterComponent} fallback={<Footer />}>
