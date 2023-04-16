@@ -1,28 +1,35 @@
 import { Component, createSignal } from "solid-js";
 
-import { SectionOrder, SimpleDatepicker } from "./lib";
+// @ts-ignore
+import pkg from "../package.json";
+
+import { SimpleDatepicker } from "./lib";
 import "./lib/styles.css";
 
 import styles from "./App.module.css";
 
 const App: Component = () => {
   const [date, setDate] = createSignal<Date>(new Date());
-  const [disabledDays, setDisabledDays] = createSignal<number[]>();
-  const [order, setOrder] = createSignal<SectionOrder>();
-
-  setTimeout(() => setDisabledDays([16]), 5000);
-
-  setTimeout(() => setOrder("d-m-y"), 4000);
 
   return (
-    <div class={styles.container}>
+    <main class={styles.container}>
+      <h1>Solid-simple-datepicker v{pkg.version}</h1>
       <SimpleDatepicker
         date={date()}
-        disabledDays={disabledDays()}
-        order={order()}
-        onChange={setDate}
+        onChange={(date) => {
+          console.log(`onChange: ${date}`);
+
+          setDate(date);
+        }}
+        onFooterDone={() => console.log("onDone")}
       />
-    </div>
+      <a
+        target="_blank"
+        href="https://github.com/elite174/solid-simple-datepicker"
+      >
+        Github
+      </a>
+    </main>
   );
 };
 

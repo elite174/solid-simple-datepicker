@@ -1,7 +1,35 @@
 {
-  "name": "vite-template-solid",
-  "version": "0.0.0",
-  "description": "",
+  "name": "solid-simple-datepicker",
+  "version": "1.0.0",
+  "description": "Customizable, accessible and simple datepicker component",
+  "type": "module",
+  "main": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "solid": "./dist/source/index.js",
+      "import": "./dist/esm/index.js",
+      "browser": "./dist/esm/index.js",
+      "node": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "sideEffects": "false",
+  "author": "Vladislav Lipatov",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elite174/solid-simple-datepicker"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "solid-js",
+    "datepicker",
+    "component"
+  ],
   "scripts": {
     "start": "vite",
     "dev": "vite",
@@ -10,11 +38,23 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@babel/core": "^7.21.4",
+    "rollup-plugin-copy": "^3.4.0",
+    "rollup-preset-solid": "^2.0.1",
+    "solid-js": "^1.7.3",
     "typescript": "^5.0.4",
     "vite": "^4.2.1",
     "vite-plugin-solid": "^2.7.0"
   },
-  "dependencies": {
-    "solid-js": "^1.7.3"
-  }
+  "peerDependencies": {
+    "solid-js": "^1.7"
+  },
+  "homepage": "https://github.com/elite174/solid-simple-datepicker",
+  "bugs": {
+    "url": "https://github.com/elite174/solid-simple-datepicker/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": false
 }
