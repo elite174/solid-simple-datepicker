@@ -13,7 +13,7 @@ const App: Component = () => {
 
   return (
     <main class={styles.container}>
-      <h1>Solid-simple-datepicker v{pkg.version}</h1>
+      <h1>solid-simple-datepicker v{pkg.version}</h1>
       <SimpleDatepicker
         date={date()}
         onChange={(date) => {
