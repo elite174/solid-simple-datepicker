@@ -11,7 +11,7 @@ import {
 import { createStore, unwrap } from "solid-js/store";
 import { Dynamic } from "solid-js/web";
 
-type DatePickerSection = "d" | "m" | "y";
+export type DatePickerSection = "d" | "m" | "y";
 
 export type SectionOrder =
   | "d-m-y"
@@ -24,7 +24,7 @@ export type SectionOrder =
 type Month = keyof typeof MONTH_LOCALE;
 type Section = keyof typeof SECTION_LOCALE;
 
-type Locale = {
+export type Locale = {
   [K in keyof typeof DEFAULT_LOCALE]?: string;
 };
 
