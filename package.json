@@ -33,7 +33,8 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "rollup -c rollup.config.js",
+    "build": "vite build",
+    "build:lib": "rollup -c rollup.config.js",
     "serve": "vite preview"
   },
   "license": "MIT",
