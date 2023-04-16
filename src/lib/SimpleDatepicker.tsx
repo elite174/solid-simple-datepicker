@@ -1,4 +1,10 @@
-import type { Accessor, JSX, ParentComponent, VoidComponent } from "solid-js";
+import {
+  Accessor,
+  JSX,
+  ParentComponent,
+  VoidComponent,
+  untrack,
+} from "solid-js";
 import {
   For,
   Show,
@@ -22,7 +28,7 @@ type Locale = {
   [K in keyof typeof DEFAULT_LOCALE]?: string;
 };
 
-type LocalDate = Record<Section, number | undefined>;
+type LocalDate = Record<Section, number | null>;
 
 export interface DatePickerProps {
   /** Selected date */
@@ -58,6 +64,7 @@ export interface DatePickerProps {
   locale?: Locale;
   /**
    * The order in which datepicker sections should be displayed
+   * @type "d-m-y" | "d-y-m" | "m-d-y" | "m-y-d" | "y-m-d" | "y-d-m"
    * @default "m-d-y"
    */
   order?: Order;
@@ -133,6 +140,12 @@ const DEFAULT_LOCALE = Object.freeze({
 const MONTHS_NAMES = Object.keys(MONTH_LOCALE) as Month[];
 const MONTHS = new Array(12).fill(0).map((_, index) => index);
 const DAYS = new Array(31).fill(0).map((_, index) => index + 1);
+const SECTIONS: Section[] = ["day", "month", "year"];
+const DISABLED_SECTION_PROP_NAMES = Object.freeze({
+  day: "disabledDays",
+  month: "disabledMonths",
+  year: "disabledYears",
+});
 
 interface CommonComponentProps {
   locale: Required<Locale>;
@@ -164,7 +177,7 @@ const Footer: VoidComponent<
 // This hook will scroll to selected list item
 // if it's not visible
 const useScrollToListItem = (
-  selectedValue: Accessor<number | undefined>,
+  selectedValue: Accessor<number | null>,
   dataAttribute: string
 ) => {
   const [listRef, setListRef] = createSignal<HTMLUListElement>();
@@ -172,7 +185,7 @@ const useScrollToListItem = (
   createEffect(() => {
     const listElement = listRef();
 
-    if (selectedValue() !== undefined && listElement) {
+    if (selectedValue() !== null && listElement) {
       const selectedListElement = listElement.querySelector(
         `[${dataAttribute}="${selectedValue()}"]`
       );
@@ -201,15 +214,15 @@ const useScrollToListItem = (
 
 const DayRenderer: VoidComponent<
   CommonRendererProps & {
-    selectedYear?: number;
-    selectedMonth?: number;
-    selectedDay?: number;
+    selectedYear: number | null;
+    selectedMonth: number | null;
+    selectedDay: number | null;
   } & Pick<DatePickerProps, "disabledDays">
 > = (props) => {
   const disabledDays = createMemo(() => new Set(props.disabledDays ?? []));
 
   const daysInMonth = createMemo(() =>
-    props.selectedYear !== undefined && props.selectedMonth !== undefined
+    props.selectedYear !== null && props.selectedMonth !== null
       ? new Date(props.selectedYear, props.selectedMonth + 1, 0).getDate()
       : 31
   );
@@ -220,15 +233,12 @@ const DayRenderer: VoidComponent<
   const isDaySelected = (day: number) => day === props.selectedDay;
 
   const getDateTimeString = (day: number) => {
-    if (
-      props.selectedYear !== undefined &&
-      props.selectedMonth !== undefined &&
-      day !== undefined
-    )
+    if (props.selectedYear !== null && props.selectedMonth !== null)
       return `${props.selectedYear}-${props.selectedMonth}-${day}`;
 
-    if (props.selectedMonth !== undefined && day !== undefined)
-      return `${props.selectedMonth}-${day}`;
+    if (props.selectedMonth !== null) return `${props.selectedMonth}-${day}`;
+
+    return "";
   };
 
   return (
@@ -264,8 +274,8 @@ const DayRenderer: VoidComponent<
 
 const MonthRenderer: VoidComponent<
   CommonRendererProps & {
-    selectedYear?: number;
-    selectedMonth?: number;
+    selectedYear: number | null;
+    selectedMonth: number | null;
   } & Pick<DatePickerProps, "disabledMonths" | "locale">
 > = (props) => {
   const disabledMonths = createMemo(() => new Set(props.disabledMonths ?? []));
@@ -275,9 +285,7 @@ const MonthRenderer: VoidComponent<
   const isMonthSelected = (month: number) => month === props.selectedMonth;
 
   const getDateTimeString = (month: number) =>
-    props.selectedYear !== undefined
-      ? `${props.selectedYear}-${month}`
-      : `${month}`;
+    props.selectedYear !== null ? `${props.selectedYear}-${month}` : `${month}`;
 
   const setListRef = useScrollToListItem(
     () => props.selectedMonth,
@@ -323,7 +331,7 @@ const MonthRenderer: VoidComponent<
 
 const YearRenderer: VoidComponent<
   CommonRendererProps & {
-    selectedYear?: number;
+    selectedYear: number | null;
   } & Pick<
       DatePickerProps,
       "startYear" | "endYear" | "disabledYears" | "locale"
@@ -336,8 +344,6 @@ const YearRenderer: VoidComponent<
     },
     initialProps
   );
-
-  let listRef: HTMLUListElement | undefined;
 
   const yearsArray = () =>
     new Array(props.endYear - props.startYear)
@@ -407,7 +413,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
             month: props.date.getMonth(),
             day: props.date.getDate(),
           }
-        : { year: undefined, month: undefined, day: undefined })()
+        : { year: null, month: null, day: null })()
   );
 
   // update local date if external date changes
@@ -421,6 +427,24 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     }
   });
 
+  createComputed(() => {
+    const currentLocalDate = { ...unwrap(localDate) };
+
+    SECTIONS.forEach((section) => {
+      // subscribe here to all props
+      const disabledList = props[DISABLED_SECTION_PROP_NAMES[section]];
+
+      if (
+        currentLocalDate[section] !== null &&
+        disabledList?.some((value) => value === currentLocalDate[section])
+      ) {
+        currentLocalDate[section] = null;
+      }
+    });
+
+    setLocalDate(currentLocalDate);
+  });
+
   const locale = createMemo(() => ({
     ...DEFAULT_LOCALE,
     ...props.locale,
@@ -431,11 +455,11 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
   const handleChange = (patch: Partial<LocalDate>) => {
     const newLocalDate = { ...unwrap(localDate), ...patch };
 
-    // If smth is undefined don't call onChange
+    // If smth is null don't call onChange
     if (
-      newLocalDate.day === undefined ||
-      newLocalDate.month === undefined ||
-      newLocalDate.year === undefined
+      newLocalDate.day === null ||
+      newLocalDate.month === null ||
+      newLocalDate.year === null
     ) {
       setLocalDate(newLocalDate);
 
@@ -451,7 +475,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
         newLocalDate.day
       ).getMonth() !== newLocalDate.month
     ) {
-      newLocalDate.day = undefined;
+      newLocalDate.day = null;
       setLocalDate(newLocalDate);
 
       return;

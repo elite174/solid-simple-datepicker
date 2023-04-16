@@ -56,6 +56,7 @@
 }
 
 .SimpleDatepicker-List {
+  /* Keep this for offsetTop */
   position: relative;
   padding-inline: var(--scrollbar-size);
   height: 10rem;

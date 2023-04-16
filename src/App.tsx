@@ -6,19 +6,18 @@ import "./lib/styles.css";
 import styles from "./App.module.css";
 
 const App: Component = () => {
-  const [date, setDate] = createSignal(new Date(2000, 4, 3));
+  const [date, setDate] = createSignal<Date>(new Date());
+  const [disabledDays, setDisabledDays] = createSignal<number[]>();
 
-  setTimeout(() => {
-    setDate(new Date(1960, 9, 5));
-
-    setTimeout(() => {
-      setDate(new Date(2059, 0, 7));
-    }, 5000);
-  }, 5000);
+  setTimeout(() => setDisabledDays([16]), 5000);
 
   return (
     <div class={styles.container}>
-      <SimpleDatepicker order="d-y-m" date={date()} onChange={setDate} />
+      <SimpleDatepicker
+        date={date()}
+        disabledDays={disabledDays()}
+        onChange={setDate}
+      />
     </div>
   );
 };
