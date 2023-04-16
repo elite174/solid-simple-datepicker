@@ -1,5 +1,16 @@
 .SimpleDatepicker {
-  --scrollbarSize: 6px;
+  --scrollbar-size: 6px;
+  --color-scrollbar: #888;
+
+  --color-primary: #1e4cd7;
+  --color-primary-hover: #1f3eae;
+  --color-primary-focus: #94c4fc;
+
+  --color-text-primary: white;
+  --color-text-disabled: #aaa;
+  --color-list-caption: #999;
+
+  --color-footer-border: #eee;
 
   border-radius: 8px;
   box-shadow: 0px 0.6px 1.8px rgba(0, 0, 0, 0.035),
@@ -8,13 +19,13 @@
 }
 
 .SimpleDatepicker ::-webkit-scrollbar {
-  width: var(--scrollbarSize);
-  height: var(--scrollbarSize);
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
 }
 
 .SimpleDatepicker ::-webkit-scrollbar-thumb {
   border-radius: 8px;
-  background-color: #888;
+  background-color: var(--color-scrollbar);
 }
 
 .SimpleDatepicker-SectionContainer {
@@ -34,24 +45,19 @@
 }
 
 .SimpleDatepicker-ListCaption {
-  color: #999;
+  color: var(--color-list-caption);
   font-size: 0.8rem;
   text-align: center;
 }
 
 .SimpleDatepicker-ListWrapper_month .SimpleDatepicker-ListCaption,
 .SimpleDatepicker-ListWrapper_year .SimpleDatepicker-ListCaption {
-  padding-right: var(--scrollbarSize);
+  padding-right: var(--scrollbar-size);
 }
 
 .SimpleDatepicker-List {
-  padding-inline: var(--scrollbarSize);
+  padding-inline: var(--scrollbar-size);
   height: 10rem;
-}
-
-.SimpleDatepicker-ListTitle {
-  color: #888;
-  font-size: 0.8rem;
 }
 
 .SimpleDatepicker-ListWrapper {
@@ -82,8 +88,8 @@
 }
 
 .SimpleDatepicker-Footer .SimpleDatepicker-Button {
-  background-color: #1e4cd7;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
 
   padding-inline: 0.5rem;
 }
@@ -94,25 +100,25 @@
 
 .SimpleDatepicker-Button[disabled] {
   pointer-events: none;
-  color: #aaa;
+  color: var(--color-text-disabled);
 }
 
 .SimpleDatepicker-Button:hover,
 .SimpleDatepicker-Button:focus {
-  background-color: #94c4fc;
+  background-color: var(--color-primary-focus);
 }
 
 .SimpleDatepicker-Button:focus {
-  outline: 1px solid #1e4cd7;
+  outline: 1px solid var(--color-primary);
 }
 
 .SimpleDatepicker-Button.SimpleDatepicker-Button_selected {
-  color: white;
-  background-color: #1e4cd7;
+  color: var(--color-text-primary);
+  background-color: var(--color-primary);
 }
 
 .SimpleDatepicker-Button_selected:hover {
-  background-color: #1f3eae;
+  background-color: var(--color-primary-hover);
 }
 
 .SimpleDatepicker-ListWrapper_day .SimpleDatepicker-List {
@@ -130,7 +136,7 @@
   display: flex;
   flex-direction: row-reverse;
 
-  padding: 0.5rem calc(1.125rem + var(--scrollbarSize));
+  padding: 0.5rem calc(1.125rem + var(--scrollbar-size));
 
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-footer-border);
 }
