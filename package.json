@@ -16,7 +16,7 @@
     },
     "./styles.css": "./dist/styles.css"
   },
-  "sideEffects": "false",
+  "sideEffects": false,
   "author": "Vladislav Lipatov",
   "repository": {
     "type": "git",
