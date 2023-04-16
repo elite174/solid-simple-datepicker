@@ -1,15 +1,19 @@
-import type { JSX, ParentComponent, VoidComponent } from "solid-js";
+import type { Accessor, JSX, ParentComponent, VoidComponent } from "solid-js";
 import {
   For,
   Show,
   createComputed,
+  createEffect,
   createMemo,
   createSignal,
   mergeProps,
 } from "solid-js";
+import { createStore, unwrap } from "solid-js/store";
 import { Dynamic } from "solid-js/web";
 
 export type DatePickerSection = "d" | "m" | "y";
+
+type Order = "d-m-y" | "d-y-m" | "m-d-y" | "m-y-d" | "y-m-d" | "y-d-m";
 
 type Month = keyof typeof MONTH_LOCALE;
 type Section = keyof typeof SECTION_LOCALE;
@@ -56,7 +60,7 @@ export interface DatePickerProps {
    * The order in which datepicker sections should be displayed
    * @default "m-d-y"
    */
-  order?: `${DatePickerSection}-${DatePickerSection}-${DatePickerSection}`;
+  order?: Order;
   /**
    * Extra class applied to the container element
    */
@@ -157,6 +161,44 @@ const Footer: VoidComponent<
   );
 };
 
+// This hook will scroll to selected list item
+// if it's not visible
+const useScrollToListItem = (
+  selectedValue: Accessor<number | undefined>,
+  dataAttribute: string
+) => {
+  const [listRef, setListRef] = createSignal<HTMLUListElement>();
+
+  createEffect(() => {
+    const listElement = listRef();
+
+    if (selectedValue() !== undefined && listElement) {
+      const selectedListElement = listElement.querySelector(
+        `[${dataAttribute}="${selectedValue()}"]`
+      );
+
+      if (selectedListElement instanceof HTMLElement) {
+        const listHeight = listElement.clientHeight;
+        const listItemYPosition = selectedListElement.offsetTop;
+        const listScrollPosition = listElement.scrollTop;
+
+        if (
+          listScrollPosition + listHeight < listItemYPosition ||
+          listScrollPosition > listItemYPosition
+        ) {
+          listElement.scrollTo({
+            // we have only 5 visible items
+            // so selected item should be in the center
+            top: listItemYPosition - (listHeight / 5) * 2,
+          });
+        }
+      }
+    }
+  });
+
+  return setListRef;
+};
+
 const DayRenderer: VoidComponent<
   CommonRendererProps & {
     selectedYear?: number;
@@ -237,6 +279,11 @@ const MonthRenderer: VoidComponent<
       ? `${props.selectedYear}-${month}`
       : `${month}`;
 
+  const setListRef = useScrollToListItem(
+    () => props.selectedMonth,
+    "data-month"
+  );
+
   return (
     <figure
       style={props.style}
@@ -245,10 +292,14 @@ const MonthRenderer: VoidComponent<
       <figcaption class="SimpleDatepicker-ListCaption">
         {props.locale.month}
       </figcaption>
-      <ul title={props.locale.month} class="SimpleDatepicker-List">
+      <ul
+        ref={setListRef}
+        title={props.locale.month}
+        class="SimpleDatepicker-List"
+      >
         <For each={MONTHS}>
           {(month) => (
-            <li class="SimpleDatepicker-ListItem">
+            <li class="SimpleDatepicker-ListItem" data-month={month}>
               <button
                 type="button"
                 classList={{
@@ -286,6 +337,8 @@ const YearRenderer: VoidComponent<
     initialProps
   );
 
+  let listRef: HTMLUListElement | undefined;
+
   const yearsArray = () =>
     new Array(props.endYear - props.startYear)
       .fill(0)
@@ -297,6 +350,8 @@ const YearRenderer: VoidComponent<
 
   const isYearSelected = (year: number) => year === props.selectedYear;
 
+  const setListRef = useScrollToListItem(() => props.selectedYear, "data-year");
+
   return (
     <figure
       style={props.style}
@@ -305,10 +360,14 @@ const YearRenderer: VoidComponent<
       <figcaption class="SimpleDatepicker-ListCaption">
         {props.locale.year}
       </figcaption>
-      <ul class="SimpleDatepicker-List">
+      <ul
+        ref={setListRef}
+        title={props.locale.year}
+        class="SimpleDatepicker-List"
+      >
         <For each={yearsArray()}>
           {(year) => (
-            <li class="SimpleDatepicker-ListItem">
+            <li class="SimpleDatepicker-ListItem" data-year={year}>
               <button
                 type="button"
                 classList={{
@@ -340,7 +399,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     initialProps
   );
 
-  const [localDate, setLocalDate] = createSignal<LocalDate>(
+  const [localDate, setLocalDate] = createStore<LocalDate>(
     (() =>
       props.date
         ? {
@@ -348,13 +407,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
             month: props.date.getMonth(),
             day: props.date.getDate(),
           }
-        : { year: undefined, month: undefined, day: undefined })(),
-    {
-      equals: (prev, next) =>
-        prev.day === next.day &&
-        prev.month === next.month &&
-        prev.year === next.year,
-    }
+        : { year: undefined, month: undefined, day: undefined })()
   );
 
   // update local date if external date changes
@@ -376,7 +429,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
   const sections = createMemo(() => props.order.split("-"));
 
   const handleChange = (patch: Partial<LocalDate>) => {
-    const newLocalDate = { ...localDate(), ...patch };
+    const newLocalDate = { ...unwrap(localDate), ...patch };
 
     // If smth is undefined don't call onChange
     if (
@@ -430,7 +483,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
         <YearRenderer
           locale={locale()}
           style={{ order: sections().indexOf("y") }}
-          selectedYear={localDate().year}
+          selectedYear={localDate.year}
           startYear={props.startYear}
           endYear={props.endYear}
           onSelect={(year) => handleChange({ year })}
@@ -438,17 +491,17 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
         <MonthRenderer
           locale={locale()}
           style={{ order: sections().indexOf("m") }}
-          selectedMonth={localDate().month}
-          selectedYear={localDate().year}
+          selectedMonth={localDate.month}
+          selectedYear={localDate.year}
           disabledMonths={props.disabledMonths}
           onSelect={(month) => handleChange({ month })}
         />
         <DayRenderer
           locale={locale()}
           style={{ order: sections().indexOf("d") }}
-          selectedDay={localDate().day}
-          selectedMonth={localDate().month}
-          selectedYear={localDate().year}
+          selectedDay={localDate.day}
+          selectedMonth={localDate.month}
+          selectedYear={localDate.year}
           disabledDays={props.disabledDays}
           onSelect={(day) => handleChange({ day })}
         />
