@@ -1,10 +1,4 @@
-import {
-  Accessor,
-  JSX,
-  ParentComponent,
-  VoidComponent,
-  untrack,
-} from "solid-js";
+import type { Accessor, JSX, ParentComponent, VoidComponent } from "solid-js";
 import {
   For,
   Show,
@@ -17,9 +11,15 @@ import {
 import { createStore, unwrap } from "solid-js/store";
 import { Dynamic } from "solid-js/web";
 
-export type DatePickerSection = "d" | "m" | "y";
+type DatePickerSection = "d" | "m" | "y";
 
-type Order = "d-m-y" | "d-y-m" | "m-d-y" | "m-y-d" | "y-m-d" | "y-d-m";
+export type SectionOrder =
+  | "d-m-y"
+  | "d-y-m"
+  | "m-d-y"
+  | "m-y-d"
+  | "y-m-d"
+  | "y-d-m";
 
 type Month = keyof typeof MONTH_LOCALE;
 type Section = keyof typeof SECTION_LOCALE;
@@ -67,7 +67,7 @@ export interface DatePickerProps {
    * @type "d-m-y" | "d-y-m" | "m-d-y" | "m-y-d" | "y-m-d" | "y-d-m"
    * @default "m-d-y"
    */
-  order?: Order;
+  order?: SectionOrder;
   /**
    * Extra class applied to the container element
    */
@@ -450,7 +450,40 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     ...props.locale,
   }));
 
-  const sections = createMemo(() => props.order.split("-"));
+  const sectionMap = {
+    d: () => (
+      <DayRenderer
+        locale={locale()}
+        selectedDay={localDate.day}
+        selectedMonth={localDate.month}
+        selectedYear={localDate.year}
+        disabledDays={props.disabledDays}
+        onSelect={(day) => handleChange({ day })}
+      />
+    ),
+    m: () => (
+      <MonthRenderer
+        locale={locale()}
+        selectedMonth={localDate.month}
+        selectedYear={localDate.year}
+        disabledMonths={props.disabledMonths}
+        onSelect={(month) => handleChange({ month })}
+      />
+    ),
+    y: () => (
+      <YearRenderer
+        locale={locale()}
+        selectedYear={localDate.year}
+        startYear={props.startYear}
+        endYear={props.endYear}
+        onSelect={(year) => handleChange({ year })}
+      />
+    ),
+  };
+
+  const sections = createMemo(
+    () => props.order.split("-") as DatePickerSection[]
+  );
 
   const handleChange = (patch: Partial<LocalDate>) => {
     const newLocalDate = { ...unwrap(localDate), ...patch };
@@ -504,31 +537,13 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
       style={props.style}
     >
       <div class="SimpleDatepicker-SectionContainer">
-        <YearRenderer
-          locale={locale()}
-          style={{ order: sections().indexOf("y") }}
-          selectedYear={localDate.year}
-          startYear={props.startYear}
-          endYear={props.endYear}
-          onSelect={(year) => handleChange({ year })}
-        />
-        <MonthRenderer
-          locale={locale()}
-          style={{ order: sections().indexOf("m") }}
-          selectedMonth={localDate.month}
-          selectedYear={localDate.year}
-          disabledMonths={props.disabledMonths}
-          onSelect={(month) => handleChange({ month })}
-        />
-        <DayRenderer
-          locale={locale()}
-          style={{ order: sections().indexOf("d") }}
-          selectedDay={localDate.day}
-          selectedMonth={localDate.month}
-          selectedYear={localDate.year}
-          disabledDays={props.disabledDays}
-          onSelect={(day) => handleChange({ day })}
-        />
+        <For each={sections()}>
+          {
+            // We can't use flex-order because we want proper tab naviagtion on sections
+            // Tabindex is also not preferrable because we don't want to affect external navigation
+            (section) => <Dynamic component={sectionMap[section]} />
+          }
+        </For>
       </div>
       <Show when={props.footer}>
         <Dynamic
