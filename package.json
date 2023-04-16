@@ -33,12 +33,16 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build",
+    "build": "rollup -c rollup.config.js",
     "serve": "vite preview"
   },
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
+    "@babel/preset-typescript": "^7.21.4",
+    "babel-preset-solid": "^1.7.3",
+    "rollup": "^3.20.2",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-preset-solid": "^2.0.1",
     "solid-js": "^1.7.3",
