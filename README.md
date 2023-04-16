@@ -102,7 +102,7 @@ export interface DatePickerProps {
 
 ## Customization
 
-You can easily customize the view of the Datepicker with CSS custom variables!
+You can easily customize the view of the Datepicker with CSS custom variables! Just pass extra class to the component with redefined CSS variables.
 
 You can set the following variables (check styles.css):
 
