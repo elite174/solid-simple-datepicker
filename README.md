@@ -2,6 +2,8 @@
 
 A nice, customizable and simple datepicker component for every day!
 
+![image](https://user-images.githubusercontent.com/13636224/232307456-140fb01e-5513-41e2-bbc3-ad9b14f6fcc8.png)
+
 ## Installation
 
 `npm i solid-simple-datepicker`
