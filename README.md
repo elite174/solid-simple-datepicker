@@ -113,6 +113,7 @@ You can set the following variables (check styles.css):
   --button-border-radius: 4px;
   --button-height: 2rem;
   --button-width: 4rem;
+  --button-inline-padding: 0.5rem;
   --button-focus-outline: 1px solid var(--color-primary);
 
   --color-scrollbar: #888;

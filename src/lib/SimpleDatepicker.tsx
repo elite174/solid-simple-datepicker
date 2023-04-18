@@ -168,7 +168,7 @@ const Footer: VoidComponent<
         type="button"
         class="SimpleDatepicker-Button SimpleDatepicker-Button_selected"
       >
-        {props.locale.done}
+        <span class="SimpleDatepicker-ButtonText">{props.locale.done}</span>
       </button>
     </div>
   );
@@ -249,7 +249,7 @@ const DayRenderer: VoidComponent<
       <figcaption class="SimpleDatepicker-ListCaption">
         {props.locale.day}
       </figcaption>
-      <ul class="SimpleDatepicker-List">
+      <ul title={props.locale.day} class="SimpleDatepicker-List">
         <For each={DAYS}>
           {(day) => (
             <li class="SimpleDatepicker-ListItem">
@@ -262,7 +262,12 @@ const DayRenderer: VoidComponent<
                 disabled={isDayDisabled(day)}
                 onClick={() => props.onSelect(day)}
               >
-                <time datetime={getDateTimeString(day)}>{day}</time>
+                <time
+                  class="SimpleDatepicker-ButtonText"
+                  datetime={getDateTimeString(day)}
+                >
+                  {day}
+                </time>
               </button>
             </li>
           )}
@@ -317,7 +322,10 @@ const MonthRenderer: VoidComponent<
                 disabled={isMonthDisabled(month)}
                 onClick={() => props.onSelect(month)}
               >
-                <time datetime={getDateTimeString(month)}>
+                <time
+                  class="SimpleDatepicker-ButtonText"
+                  datetime={getDateTimeString(month)}
+                >
                   {props.locale[MONTHS_NAMES[month] as Month]}
                 </time>
               </button>
@@ -383,7 +391,9 @@ const YearRenderer: VoidComponent<
                 disabled={isYearDisabled(year)}
                 onClick={() => props.onSelect(year)}
               >
-                <time datetime={`${year}`}>{year}</time>
+                <time class="SimpleDatepicker-ButtonText" datetime={`${year}`}>
+                  {year}
+                </time>
               </button>
             </li>
           )}
@@ -427,6 +437,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     }
   });
 
+  // Here we need to reset a section if selected item in the section becomes disabled 
   createComputed(() => {
     const currentLocalDate = { ...unwrap(localDate) };
 
