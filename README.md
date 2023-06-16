@@ -107,41 +107,41 @@ You can easily customize the view of the Datepicker with CSS custom variables! J
 You can set the following variables (check styles.css):
 
 ```css
-  --scrollbar-size: 6px;
-  --scrollbar-border-radius: 8px;
+  --sd-scrollbar-size: 6px;
+  --sd-scrollbar-border-radius: 8px;
 
-  --button-border-radius: 4px;
-  --button-height: 2rem;
-  --button-width: 4rem;
-  --button-inline-padding: 0.5rem;
-  --button-focus-outline: 1px solid var(--color-primary);
+  --sd-button-border-radius: 4px;
+  --sd-button-height: 2rem;
+  --sd-button-width: 4rem;
+  --sd-button-inline-padding: 0.5rem;
+  --sd-button-focus-outline: 1px solid var(--sd-primary-color);
 
-  --color-scrollbar: #888;
+  --sd-scrollbar-color: #888;
 
-  --color-background: white;
-  --color-text: #172454;
+  --sd-background-color: white;
+  --sd-text-color: #172454;
 
-  --color-primary: #1e4cd7;
-  --color-primary-hover: #1f3eae;
-  --color-primary-focus: #94c4fc;
+  --sd-primary-color: #1e4cd7;
+  --sd-primary-hover-color: #1f3eae;
+  --sd-primary-focus-color: #94c4fc;
 
-  --color-text-primary: white;
-  --color-text-disabled: #aaa;
-  --color-list-caption: #999;
+  --sd-text-primary-color: white;
+  --sd-text-disabled-color: #aaa;
+  --sd-list-caption-color: #999;
 
-  --color-footer-border: #eee;
+  --sd-footer-border-color: #eee;
 
-  --transition-time: 50ms;
-  --transition-timing-function: ease-in-out;
+  --sd-transition-time: 50ms;
+  --sd-transition-timing-function: ease-in-out;
 
-  --section-gap: 1rem;
-  --list-caption-gap: 0.25rem;
-  --list-caption-font-size: 0.8rem;
-  --padding: 0.5rem;
+  --sd-section-gap: 1rem;
+  --sd-list-caption-gap: 0.25rem;
+  --sd-list-caption-font-size: 0.8rem;
+  --sd-padding: 0.5rem;
 
-  --box-shadow: 0px 0.6px 1.8px rgba(0, 0, 0, 0.035),
+  --sd-box-shadow: 0px 0.6px 1.8px rgba(0, 0, 0, 0.035),
     0px 5px 14px rgba(0, 0, 0, 0.07);
-  --border-radius: 8px;
+  --sd-border-radius: 8px;
 
-  --footer-border-top: 1px solid var(--color-footer-border);
+  --sd-footer-border-top: 1px solid var(--sd-footer-border-color);
 ```
