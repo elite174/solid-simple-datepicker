@@ -1,0 +1,186 @@
+%reset {
+  all: unset;
+}
+
+.SimpleDatepicker {
+  --sd-scrollbar-size: 6px;
+  --sd-scrollbar-border-radius: 8px;
+
+  --sd-button-border-radius: 4px;
+  --sd-button-height: 2rem;
+  --sd-button-width: 4rem;
+  --sd-button-inline-padding: 0.5rem;
+  --sd-button-focus-outline: 1px solid var(--sd-primary-color);
+
+  --sd-scrollbar-color: #888;
+
+  --sd-background-color: white;
+  --sd-text-color: #172454;
+
+  --sd-primary-color: #1e4cd7;
+  --sd-primary-hover-color: #1f3eae;
+  --sd-primary-focus-color: #94c4fc;
+
+  --sd-text-primary-color: white;
+  --sd-text-disabled-color: #aaa;
+  --sd-list-caption-color: #999;
+
+  --sd-footer-border-color: #eee;
+
+  --sd-transition-time: 50ms;
+  --sd-transition-timing-function: ease-in-out;
+
+  --sd-section-gap: 1rem;
+  --sd-list-caption-gap: 0.25rem;
+  --sd-list-caption-font-size: 0.8rem;
+  --sd-padding: 0.5rem;
+
+  --sd-box-shadow: 0px 0.6px 1.8px rgba(0, 0, 0, 0.035),
+    0px 5px 14px rgba(0, 0, 0, 0.07);
+  --sd-border-radius: 8px;
+
+  --sd-footer-border-top: 1px solid var(--sd-footer-border-color);
+
+  background-color: var(--sd-background-color);
+  border-radius: var(--sd-border-radius);
+  box-shadow: var(--sd-box-shadow);
+  color: var(--sd-text-color);
+  transition: background-color var(--sd-transition-time)
+      var(--sd-transition-timing-function),
+    color var(--sd-transition-time) var(--sd-transition-timing-function),
+    box-shadow var(--sd-transition-time) var(--sd-transition-timing-function);
+  width: fit-content;
+
+  & ::-webkit-scrollbar {
+    width: var(--sd-scrollbar-size);
+    height: var(--sd-scrollbar-size);
+  }
+
+  & ::-webkit-scrollbar-thumb {
+    border-radius: var(--sd-scrollbar-border-radius);
+    background-color: var(--sd-scrollbar-color);
+  }
+
+  &-SectionContainer {
+    display: flex;
+    gap: var(--sd-section-gap);
+
+    padding: var(--sd-padding);
+
+    overflow: hidden;
+  }
+
+  &-Footer {
+    display: flex;
+    flex-direction: row-reverse;
+
+    padding: var(--sd-padding)
+      calc(
+        var(--sd-scrollbar-size) + var(--sd-scrollbar-size) + var(--sd-padding)
+      );
+
+    border-top: var(--sd-footer-border-top);
+  }
+
+  &-Button {
+    @extend %reset;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+    height: var(--sd-button-height);
+    border-radius: var(--sd-button-border-radius);
+
+    cursor: pointer;
+
+    transition: background-color var(--sd-transition-time)
+      var(--sd-transition-timing-function);
+
+    &[disabled] {
+      pointer-events: none;
+      color: var(--sd-text-disabled-color);
+    }
+
+    &:hover,
+    &:focus {
+      background-color: var(--sd-primary-focus-color);
+    }
+
+    &:focus {
+      outline: var(--sd-button-focus-outline);
+    }
+
+    &Text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &_selected {
+      color: var(--sd-text-primary-color);
+      background-color: var(--sd-primary-color);
+
+      &:focus,
+      &:hover {
+        background-color: var(--sd-primary-hover-color);
+      }
+    }
+
+    &_wide {
+      width: var(--sd-button-width);
+      padding-inline: var(--sd-button-inline-padding);
+    }
+
+    &_squared {
+      width: var(--sd-button-height);
+    }
+  }
+
+  &-List {
+    @extend %reset;
+
+    --sd-list-items: 5;
+
+    /* Keep this for offsetTop */
+    position: relative;
+    padding-inline: var(--sd-scrollbar-size);
+    height: calc(var(--sd-button-height) * var(--sd-list-items));
+
+    &_scrollable {
+      overflow-y: auto;
+    }
+
+    &Wrapper {
+      @extend %reset;
+
+      display: flex;
+      flex-direction: column;
+
+      gap: var(--sd-list-caption-gap);
+    }
+
+    &Caption {
+      color: var(--sd-list-caption-color);
+      font-size: var(--sd-list-caption-font-size);
+      text-align: center;
+
+      &_withScrollbarPadding {
+        padding-right: var(--sd-scrollbar-size);
+      }
+    }
+
+    &Item {
+      @extend %reset;
+    }
+  }
+
+  &-DayGrid {
+    @extend %reset;
+
+    display: grid;
+    grid-template-columns: repeat(7, max-content);
+    grid-template-rows: auto;
+  }
+}
