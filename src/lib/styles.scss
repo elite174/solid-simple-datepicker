@@ -23,6 +23,7 @@
 
   --sd-text-primary-color: white;
   --sd-text-disabled-color: #aaa;
+  --sd-button-disabled-color: #e3e3e3;
   --sd-list-caption-color: #999;
 
   --sd-footer-border-color: #eee;
@@ -68,6 +69,7 @@
     padding: var(--sd-padding);
 
     overflow: hidden;
+    max-height: 500px;
   }
 
   &-Footer {
@@ -126,6 +128,10 @@
       &:hover {
         background-color: var(--sd-primary-hover-color);
       }
+
+      &[disabled] {
+        background-color: var(--sd-button-disabled-color);
+      }
     }
 
     &_wide {
@@ -141,12 +147,10 @@
   &-List {
     @extend %reset;
 
-    --sd-list-items: 5;
-
     /* Keep this for offsetTop */
     position: relative;
     padding-inline: var(--sd-scrollbar-size);
-    height: calc(var(--sd-button-height) * var(--sd-list-items));
+    height: calc(var(--sd-button-height) * var(--sd-max-rows));
 
     &_scrollable {
       overflow-y: auto;

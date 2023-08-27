@@ -15,7 +15,7 @@ const App: Component = () => {
     <main class={styles.container}>
       <h1>solid-simple-datepicker v{pkg.version}</h1>
       <SimpleDatepicker
-        date={date()}
+        selectedDate={date()}
         onChange={(date) => {
           console.log(`onChange: ${date}`);
 

@@ -7,8 +7,8 @@ import {
   createMemo,
   createSignal,
   mergeProps,
+  on,
 } from "solid-js";
-import { createStore, unwrap } from "solid-js/store";
 import { Dynamic } from "solid-js/web";
 
 export type DatePickerSection = "d" | "m" | "y";
@@ -33,7 +33,7 @@ type LocalDate = Record<Section, number | null>;
 
 export interface DatePickerProps {
   /** Selected date */
-  date?: Date;
+  selectedDate?: Date;
   /**
    * Start year to show in year list
    * @default 1960
@@ -87,8 +87,11 @@ export interface DatePickerProps {
    * @default true
    */
   footer?: boolean;
-  /** @default true */
-  weekdays?: boolean;
+  /**
+   * The number from 0 (Sun) to 6 (Sat)
+   * @default 0 (Sunday)
+   */
+  startWeekDay?: number;
   /**
    * The callback is called when the date is valid
    * It won't be called when the date is unfilled (e.g. month is not selected)
@@ -135,13 +138,13 @@ const FOOTER_LOCALE = Object.freeze({
 });
 
 const WEEKDAY_LOCALE = Object.freeze({
+  sun: "S",
   mon: "M",
   tue: "T",
   wed: "W",
   thu: "T",
   fri: "F",
   sat: "S",
-  sun: "S",
 });
 
 const DEFAULT_LOCALE = Object.freeze({
@@ -153,15 +156,18 @@ const DEFAULT_LOCALE = Object.freeze({
 
 const MONTHS_NAMES = Object.keys(MONTH_LOCALE) as Month[];
 const MONTHS = new Array(12).fill(0).map((_, index) => index);
-const DAYS = new Array(31).fill(0).map((_, index) => index + 1);
 const WEEKDAYS = new Array(7).fill(0).map((_, index) => index);
 const WEEKDAYS_NAMES = Object.keys(WEEKDAY_LOCALE) as Weekday[];
-const SECTIONS: Section[] = ["day", "month", "year"];
-const DISABLED_SECTION_PROP_NAMES = Object.freeze({
-  day: "disabledDays",
-  month: "disabledMonths",
-  year: "disabledYears",
-});
+
+const getWeekOfMonth = (
+  date: number,
+  offsetWeekDay: number,
+  firstWeekday: number
+): number => {
+  const offsetDate = date + ((firstWeekday + 7 - offsetWeekDay) % 7) - 1;
+
+  return Math.floor(offsetDate / 7);
+};
 
 interface CommonComponentProps {
   locale: Required<Locale>;
@@ -230,21 +236,17 @@ const useScrollToListItem = (
 
 const DayRenderer: VoidComponent<
   CommonRendererProps & {
-    selectedYear: number | null;
-    selectedMonth: number | null;
-    selectedDay: number | null;
-  } & Pick<DatePickerProps, "disabledDays" | "weekdays">
+    selectedYear: number;
+    selectedMonth: number;
+    selectedDay: number;
+    daysInMonth: number;
+    startWeekDay: number;
+    firstWeekDay: number;
+  } & Pick<DatePickerProps, "disabledDays" | "startWeekDay">
 > = (props) => {
   const disabledDays = createMemo(() => new Set(props.disabledDays ?? []));
 
-  const daysInMonth = createMemo(() =>
-    props.selectedYear !== null && props.selectedMonth !== null
-      ? new Date(props.selectedYear, props.selectedMonth + 1, 0).getDate()
-      : 31
-  );
-
-  const isDayDisabled = (day: number) =>
-    day > daysInMonth() || disabledDays().has(day);
+  const isDayDisabled = (day: number) => disabledDays().has(day);
 
   const isDaySelected = (day: number) => day === props.selectedDay;
 
@@ -258,48 +260,84 @@ const DayRenderer: VoidComponent<
   };
 
   return (
-    <figure style={props.style} class="SimpleDatepicker-ListWrapper">
+    <figure
+      style={props.style}
+      class="SimpleDatepicker-ListWrapper SimpleDatepicker-ListWrapper_fit"
+    >
       <figcaption class="SimpleDatepicker-ListCaption">
         {props.locale.day}
       </figcaption>
       <ul title={props.locale.day} class="SimpleDatepicker-DayGrid">
-        <Show when={props.weekdays}>
-          <For each={WEEKDAYS}>
-            {(weekDay) => (
-              <li class="SimpleDatepicker-ListItem">
-                <button
-                  type="button"
-                  disabled
-                  class="SimpleDatepicker-Button SimpleDatepicker-Button_squared"
-                >
-                  {props.locale[WEEKDAYS_NAMES[weekDay]]}
-                </button>
-              </li>
-            )}
-          </For>
-        </Show>
-        <For each={DAYS}>
-          {(day) => (
+        <For each={WEEKDAYS}>
+          {(_, index) => (
             <li class="SimpleDatepicker-ListItem">
               <button
                 type="button"
-                classList={{
-                  "SimpleDatepicker-Button SimpleDatepicker-Button_squared":
-                    true,
-                  "SimpleDatepicker-Button_selected": isDaySelected(day),
-                }}
-                disabled={isDayDisabled(day)}
-                onClick={() => props.onSelect(day)}
+                disabled
+                class="SimpleDatepicker-Button SimpleDatepicker-Button_squared"
               >
-                <time
-                  class="SimpleDatepicker-ButtonText"
-                  datetime={getDateTimeString(day)}
-                >
-                  {day}
-                </time>
+                <span class="SimpleDatepicker-ButtonText">
+                  {
+                    props.locale[
+                      WEEKDAYS_NAMES[
+                        WEEKDAYS[(index() + props.startWeekDay) % 7]
+                      ]
+                    ]
+                  }
+                </span>
               </button>
             </li>
           )}
+        </For>
+        <For
+          each={new Array(props.daysInMonth)
+            .fill(0)
+            .map((_, index) => index + 1)}
+        >
+          {(day) => {
+            const dayInWeek = () =>
+              new Date(props.selectedYear, props.selectedMonth, day).getDay();
+
+            const weekInMonth = createMemo(() =>
+              getWeekOfMonth(day, props.startWeekDay, props.firstWeekDay)
+            );
+
+            const gridColumnStart = () =>
+              (dayInWeek() + 7 - props.startWeekDay) % 7;
+
+            // +1 here because we need to skip row with week days
+            const gridRowStart = () => weekInMonth() + 1;
+
+            return (
+              <li
+                class="SimpleDatepicker-ListItem"
+                style={{
+                  "grid-column": `${gridColumnStart() + 1} / ${
+                    gridColumnStart() + 2
+                  }`,
+                  "grid-row": `${gridRowStart() + 1} / ${gridRowStart() + 2}`,
+                }}
+              >
+                <button
+                  type="button"
+                  classList={{
+                    "SimpleDatepicker-Button SimpleDatepicker-Button_squared":
+                      true,
+                    "SimpleDatepicker-Button_selected": isDaySelected(day),
+                  }}
+                  disabled={isDayDisabled(day)}
+                  onClick={() => props.onSelect(day)}
+                >
+                  <time
+                    class="SimpleDatepicker-ButtonText"
+                    datetime={getDateTimeString(day)}
+                  >
+                    {day}
+                  </time>
+                </button>
+              </li>
+            );
+          }}
         </For>
       </ul>
     </figure>
@@ -310,7 +348,7 @@ const MonthRenderer: VoidComponent<
   CommonRendererProps & {
     selectedYear: number | null;
     selectedMonth: number | null;
-  } & Pick<DatePickerProps, "disabledMonths" | "locale" | "weekdays">
+  } & Pick<DatePickerProps, "disabledMonths" | "locale">
 > = (props) => {
   const disabledMonths = createMemo(() => new Set(props.disabledMonths ?? []));
 
@@ -335,7 +373,6 @@ const MonthRenderer: VoidComponent<
         ref={setListRef}
         title={props.locale.month}
         class="SimpleDatepicker-List SimpleDatepicker-List_scrollable"
-        style={{ ["--sd-list-items"]: props.weekdays ? 6 : 5 }}
       >
         <For each={MONTHS}>
           {(month) => (
@@ -369,7 +406,7 @@ const YearRenderer: VoidComponent<
     selectedYear: number | null;
   } & Pick<
       DatePickerProps,
-      "startYear" | "endYear" | "disabledYears" | "locale" | "weekdays"
+      "startYear" | "endYear" | "disabledYears" | "locale"
     >
 > = (initialProps) => {
   const props = mergeProps(
@@ -402,7 +439,6 @@ const YearRenderer: VoidComponent<
         ref={setListRef}
         title={props.locale.year}
         class="SimpleDatepicker-List SimpleDatepicker-List_scrollable"
-        style={{ ["--sd-list-items"]: props.weekdays ? 6 : 5 }}
       >
         <For each={yearsArray()}>
           {(year) => (
@@ -436,86 +472,87 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
       order: DEFAULT_ORDER,
       tag: "div",
       footer: true,
-      weekdays: true,
+      startWeekDay: 0,
     } satisfies DatePickerProps,
     initialProps
   );
 
-  const [localDate, setLocalDate] = createStore<LocalDate>(
-    (() =>
-      props.date
-        ? {
-            year: props.date.getFullYear(),
-            month: props.date.getMonth(),
-            day: props.date.getDate(),
-          }
-        : { year: null, month: null, day: null })()
+  const propsDate = createMemo<Date>(() => props.selectedDate ?? new Date());
+
+  const [currentYear, setCurrentYear] = createSignal(propsDate().getFullYear());
+  const [currentMonth, setCurrentMonth] = createSignal(propsDate().getMonth());
+  const [currentDate, setCurrentDate] = createSignal(propsDate().getDate());
+
+  // sync state with props
+  createComputed(
+    on(
+      () => props.selectedDate,
+      (selectedDate) => {
+        if (!selectedDate) selectedDate = new Date();
+
+        setCurrentYear(selectedDate.getFullYear());
+        setCurrentMonth(selectedDate.getMonth());
+        setCurrentDate(selectedDate.getDate());
+      },
+      { defer: true }
+    )
   );
-
-  // update local date if external date changes
-  createComputed(() => {
-    if (props.date) {
-      setLocalDate({
-        year: props.date.getFullYear(),
-        month: props.date.getMonth(),
-        day: props.date.getDate(),
-      });
-    }
-  });
-
-  // Here we need to reset a section if selected item in the section becomes disabled
-  createComputed(() => {
-    const currentLocalDate = { ...unwrap(localDate) };
-
-    SECTIONS.forEach((section) => {
-      // subscribe here to all props
-      const disabledList = props[DISABLED_SECTION_PROP_NAMES[section]];
-
-      if (
-        currentLocalDate[section] !== null &&
-        disabledList?.some((value) => value === currentLocalDate[section])
-      ) {
-        currentLocalDate[section] = null;
-      }
-    });
-
-    setLocalDate(currentLocalDate);
-  });
 
   const locale = createMemo(() => ({
     ...DEFAULT_LOCALE,
     ...props.locale,
   }));
 
+  const handleChange = (patch: Partial<LocalDate>) =>
+    props.onChange?.(
+      new Date(
+        patch.year ?? currentYear(),
+        patch.month ?? currentMonth(),
+        patch.day ?? currentDate()
+      )
+    );
+
+  const daysInMonth = createMemo(() =>
+    new Date(currentYear(), currentMonth() + 1, 0).getDate()
+  );
+
+  const firstWeekday = createMemo(() =>
+    new Date(currentYear(), currentMonth(), 1).getDay()
+  );
+
+  const weekInMonth = createMemo(() =>
+    getWeekOfMonth(daysInMonth(), props.startWeekDay, firstWeekday())
+  );
+
   const sectionMap = {
     d: () => (
       <DayRenderer
         locale={locale()}
-        selectedDay={localDate.day}
-        selectedMonth={localDate.month}
-        selectedYear={localDate.year}
+        selectedDay={currentDate()}
+        selectedMonth={currentMonth()}
+        selectedYear={currentYear()}
+        daysInMonth={daysInMonth()}
+        firstWeekDay={firstWeekday()}
         disabledDays={props.disabledDays}
-        weekdays={props.weekdays}
+        startWeekDay={props.startWeekDay}
         onSelect={(day) => handleChange({ day })}
       />
     ),
     m: () => (
       <MonthRenderer
         locale={locale()}
-        selectedMonth={localDate.month}
-        selectedYear={localDate.year}
+        selectedMonth={currentMonth()}
+        selectedYear={currentYear()}
         disabledMonths={props.disabledMonths}
-        weekdays={props.weekdays}
         onSelect={(month) => handleChange({ month })}
       />
     ),
     y: () => (
       <YearRenderer
         locale={locale()}
-        selectedYear={localDate.year}
+        selectedYear={currentYear()}
         startYear={props.startYear}
         endYear={props.endYear}
-        weekdays={props.weekdays}
         onSelect={(year) => handleChange({ year })}
       />
     ),
@@ -524,48 +561,6 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
   const sections = createMemo(
     () => props.order.split("-") as DatePickerSection[]
   );
-
-  const handleChange = (patch: Partial<LocalDate>) => {
-    const newLocalDate = { ...unwrap(localDate), ...patch };
-
-    // If smth is null don't call onChange
-    if (
-      newLocalDate.day === null ||
-      newLocalDate.month === null ||
-      newLocalDate.year === null
-    ) {
-      setLocalDate(newLocalDate);
-
-      return;
-    }
-
-    // If the date is invalid (like Date(2000, 1, 31) - Feb 31 2000)
-    // update local date and return
-    if (
-      new Date(
-        newLocalDate.year,
-        newLocalDate.month,
-        newLocalDate.day
-      ).getMonth() !== newLocalDate.month
-    ) {
-      newLocalDate.day = null;
-      setLocalDate(newLocalDate);
-
-      return;
-    }
-
-    setLocalDate(newLocalDate);
-
-    if (props.onChange) {
-      const date = new Date(
-        newLocalDate.year,
-        newLocalDate.month,
-        newLocalDate.day
-      );
-
-      props.onChange(date);
-    }
-  };
 
   return (
     <Dynamic
@@ -576,7 +571,12 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
       }}
       style={props.style}
     >
-      <div class="SimpleDatepicker-SectionContainer">
+      <div
+        class="SimpleDatepicker-SectionContainer"
+        style={{
+          ["--sd-max-rows"]: weekInMonth() + 2,
+        }}
+      >
         <For each={sections()}>
           {
             // We can't use flex-order because we want proper tab naviagtion on sections
