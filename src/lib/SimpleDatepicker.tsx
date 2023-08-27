@@ -29,10 +29,9 @@ export type Locale = {
   [K in keyof typeof DEFAULT_LOCALE]?: string;
 };
 
-type LocalDate = Record<Section, number | null>;
+type LocalDate = Record<Section, number>;
 
 export interface DatePickerProps {
-  /** Selected date */
   selectedDate?: Date;
   /**
    * Start year to show in year list
@@ -199,7 +198,7 @@ const Footer: VoidComponent<
 // This hook will scroll to selected list item
 // if it's not visible
 const useScrollToListItem = (
-  selectedValue: Accessor<number | null>,
+  selectedValue: Accessor<number>,
   dataAttribute: string
 ) => {
   const [listRef, setListRef] = createSignal<HTMLUListElement>();
@@ -207,7 +206,7 @@ const useScrollToListItem = (
   createEffect(() => {
     const listElement = listRef();
 
-    if (selectedValue() !== null && listElement) {
+    if (listElement) {
       const selectedListElement = listElement.querySelector(
         `[${dataAttribute}="${selectedValue()}"]`
       );
@@ -250,20 +249,11 @@ const DayRenderer: VoidComponent<
 
   const isDaySelected = (day: number) => day === props.selectedDay;
 
-  const getDateTimeString = (day: number) => {
-    if (props.selectedYear !== null && props.selectedMonth !== null)
-      return `${props.selectedYear}-${props.selectedMonth}-${day}`;
-
-    if (props.selectedMonth !== null) return `${props.selectedMonth}-${day}`;
-
-    return "";
-  };
+  const getDateTimeString = (day: number) =>
+    `${props.selectedYear}-${props.selectedMonth}-${day}`;
 
   return (
-    <figure
-      style={props.style}
-      class="SimpleDatepicker-ListWrapper SimpleDatepicker-ListWrapper_fit"
-    >
+    <figure style={props.style} class="SimpleDatepicker-ListWrapper">
       <figcaption class="SimpleDatepicker-ListCaption">
         {props.locale.day}
       </figcaption>
@@ -346,8 +336,8 @@ const DayRenderer: VoidComponent<
 
 const MonthRenderer: VoidComponent<
   CommonRendererProps & {
-    selectedYear: number | null;
-    selectedMonth: number | null;
+    selectedYear: number;
+    selectedMonth: number;
   } & Pick<DatePickerProps, "disabledMonths" | "locale">
 > = (props) => {
   const disabledMonths = createMemo(() => new Set(props.disabledMonths ?? []));
@@ -356,8 +346,7 @@ const MonthRenderer: VoidComponent<
 
   const isMonthSelected = (month: number) => month === props.selectedMonth;
 
-  const getDateTimeString = (month: number) =>
-    props.selectedYear !== null ? `${props.selectedYear}-${month}` : `${month}`;
+  const getDateTimeString = (month: number) => `${props.selectedYear}-${month}`;
 
   const setListRef = useScrollToListItem(
     () => props.selectedMonth,
@@ -403,7 +392,7 @@ const MonthRenderer: VoidComponent<
 
 const YearRenderer: VoidComponent<
   CommonRendererProps & {
-    selectedYear: number | null;
+    selectedYear: number;
   } & Pick<
       DatePickerProps,
       "startYear" | "endYear" | "disabledYears" | "locale"

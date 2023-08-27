@@ -24,15 +24,14 @@ import "solid-simple-datepicker/styles.css";
 ...
 const [date, setDate] = createSignal<Date>();
 
-return <SimpleDatepicker date={date()} onChange={setDate} />;  
+return <SimpleDatepicker selectedDate={date()} onChange={setDate} />;
 ```
 
 ## Props
 
 ```ts
 export interface DatePickerProps {
-  /** Selected date */
-  date?: Date;
+  selectedDate?: Date;
   /**
    * Start year to show in year list
    * @default 1960
@@ -40,7 +39,7 @@ export interface DatePickerProps {
   startYear?: number;
   /**
    * End year to show in year list
-   * @default 2059
+   * @default 2060
    */
   endYear?: number;
   /**
@@ -87,6 +86,11 @@ export interface DatePickerProps {
    */
   footer?: boolean;
   /**
+   * The number from 0 (Sun) to 6 (Sat)
+   * @default 0 (Sunday)
+   */
+  startWeekDay?: number;
+  /**
    * The callback is called when the date is valid
    * It won't be called when the date is unfilled (e.g. month is not selected)
    * or the date is invalid (e.g. Feb 31 2000)
@@ -110,41 +114,41 @@ You can easily customize the view of the Datepicker with CSS custom variables! J
 You can set the following variables (check styles.css):
 
 ```css
-  --sd-scrollbar-size: 6px;
-  --sd-scrollbar-border-radius: 8px;
+--sd-scrollbar-size: 6px;
+--sd-scrollbar-border-radius: 8px;
 
-  --sd-button-border-radius: 4px;
-  --sd-button-height: 2rem;
-  --sd-button-width: 4rem;
-  --sd-button-inline-padding: 0.5rem;
-  --sd-button-focus-outline: 1px solid var(--sd-primary-color);
+--sd-button-border-radius: 4px;
+--sd-button-height: 2rem;
+--sd-button-width: 4rem;
+--sd-button-inline-padding: 0.5rem;
+--sd-button-focus-outline: 1px solid var(--sd-primary-color);
 
-  --sd-scrollbar-color: #888;
+--sd-scrollbar-color: #888;
 
-  --sd-background-color: white;
-  --sd-text-color: #172454;
+--sd-background-color: white;
+--sd-text-color: #172454;
 
-  --sd-primary-color: #1e4cd7;
-  --sd-primary-hover-color: #1f3eae;
-  --sd-primary-focus-color: #94c4fc;
+--sd-primary-color: #1e4cd7;
+--sd-primary-hover-color: #1f3eae;
+--sd-primary-focus-color: #94c4fc;
 
-  --sd-text-primary-color: white;
-  --sd-text-disabled-color: #aaa;
-  --sd-list-caption-color: #999;
+--sd-text-primary-color: white;
+--sd-text-disabled-color: #aaa;
+--sd-button-disabled-color: #e3e3e3;
+--sd-list-caption-color: #999;
 
-  --sd-footer-border-color: #eee;
+--sd-footer-border-color: #eee;
 
-  --sd-transition-time: 50ms;
-  --sd-transition-timing-function: ease-in-out;
+--sd-transition-time: 50ms;
+--sd-transition-timing-function: ease-in-out;
 
-  --sd-section-gap: 1rem;
-  --sd-list-caption-gap: 0.25rem;
-  --sd-list-caption-font-size: 0.8rem;
-  --sd-padding: 0.5rem;
+--sd-section-gap: 1rem;
+--sd-list-caption-gap: 0.25rem;
+--sd-list-caption-font-size: 0.8rem;
+--sd-padding: 0.5rem;
 
-  --sd-box-shadow: 0px 0.6px 1.8px rgba(0, 0, 0, 0.035),
-    0px 5px 14px rgba(0, 0, 0, 0.07);
-  --sd-border-radius: 8px;
+--sd-box-shadow: 0px 0.6px 1.8px rgba(0, 0, 0, 0.035), 0px 5px 14px rgba(0, 0, 0, 0.07);
+--sd-border-radius: 8px;
 
-  --sd-footer-border-top: 1px solid var(--sd-footer-border-color);
+--sd-footer-border-top: 1px solid var(--sd-footer-border-color);
 ```
