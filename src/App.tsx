@@ -4,7 +4,7 @@ import { Component, createSignal } from "solid-js";
 import pkg from "../package.json";
 
 import { SimpleDatepicker } from "./lib";
-import "./lib/styles.scss";
+import "./lib/styles.css";
 
 import styles from "./App.module.css";
 

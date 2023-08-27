@@ -1,6 +1,6 @@
 {
   "name": "solid-simple-datepicker",
-  "version": "1.0.2",
+  "version": "1.1.0-beta.2",
   "description": "Customizable, accessible and simple datepicker component",
   "type": "module",
   "main": "dist/esm/index.js",
@@ -12,7 +12,8 @@
       "import": "./dist/esm/index.js",
       "browser": "./dist/esm/index.js",
       "node": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
     },
     "./styles.css": "./dist/styles.css"
   },
@@ -34,23 +35,24 @@
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
+    "prebuild:lib": "sass ./src/lib/styles.scss:./src/lib/styles.css --style=compressed --no-source-map",
     "build:lib": "rollup -c rollup.config.js",
     "serve": "vite preview"
   },
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.22.5",
-    "@babel/preset-env": "^7.22.5",
-    "@babel/preset-typescript": "^7.22.5",
-    "babel-preset-solid": "^1.7.4",
-    "rollup": "^3.25.1",
+    "@babel/core": "^7.22.11",
+    "@babel/preset-env": "^7.22.10",
+    "@babel/preset-typescript": "^7.22.11",
+    "babel-preset-solid": "^1.7.7",
+    "rollup": "^3.28.1",
     "rollup-copy-transform-css": "^1.2.4",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-preset-solid": "^2.0.1",
     "sass": "^1.66.1",
     "solid-js": "^1.7.6",
-    "typescript": "^5.1.3",
-    "vite": "^4.3.9",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9",
     "vite-plugin-solid": "^2.7.0"
   },
   "peerDependencies": {
