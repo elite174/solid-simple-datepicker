@@ -1,3 +1,7 @@
+# 1.1.1
+
+- Fixed months and years switching when max day count is different
+
 # 1.1.0
 
 ## BREAKING changes
@@ -9,18 +13,17 @@
 
 - Finally, the datepicker shows the week days! You can customize:
 
-    ```tsx
-    // default is 0 (Sunday)
-    // 1 - is Monday
-    <SimpleDatepicker startWeekDay={1} />
-    ```
+  ```tsx
+  // default is 0 (Sunday)
+  // 1 - is Monday
+  <SimpleDatepicker startWeekDay={1} />
+  ```
 
-    You can also pass new locales to customize the name of the weekday
+  You can also pass new locales to customize the name of the weekday
 
 - Added new color: `--sd-button-disabled-color`
 - Refactored CSS
 - Fixed types for the package
-
 
 # 1.0.2
 
