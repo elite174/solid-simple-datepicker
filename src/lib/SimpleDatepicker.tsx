@@ -1,25 +1,10 @@
 import type { Accessor, JSX, ParentComponent, VoidComponent } from "solid-js";
-import {
-  For,
-  Show,
-  createComputed,
-  createEffect,
-  createMemo,
-  createSignal,
-  mergeProps,
-  on,
-} from "solid-js";
+import { For, Show, createComputed, createEffect, createMemo, createSignal, mergeProps, on } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
 export type DatePickerSection = "d" | "m" | "y";
 
-export type SectionOrder =
-  | "d-m-y"
-  | "d-y-m"
-  | "m-d-y"
-  | "m-y-d"
-  | "y-m-d"
-  | "y-d-m";
+export type SectionOrder = "d-m-y" | "d-y-m" | "m-d-y" | "m-y-d" | "y-m-d" | "y-d-m";
 
 type Month = keyof typeof MONTH_LOCALE;
 type Section = keyof typeof SECTION_LOCALE;
@@ -158,11 +143,7 @@ const MONTHS = new Array(12).fill(0).map((_, index) => index);
 const WEEKDAYS = new Array(7).fill(0).map((_, index) => index);
 const WEEKDAYS_NAMES = Object.keys(WEEKDAY_LOCALE) as Weekday[];
 
-const getWeekOfMonth = (
-  date: number,
-  offsetWeekDay: number,
-  firstWeekday: number
-): number => {
+const getWeekOfMonth = (date: number, offsetWeekDay: number, firstWeekday: number): number => {
   const offsetDate = date + ((firstWeekday + 7 - offsetWeekDay) % 7) - 1;
 
   return Math.floor(offsetDate / 7);
@@ -197,29 +178,21 @@ const Footer: VoidComponent<
 
 // This hook will scroll to selected list item
 // if it's not visible
-const useScrollToListItem = (
-  selectedValue: Accessor<number>,
-  dataAttribute: string
-) => {
+const useScrollToListItem = (selectedValue: Accessor<number>, dataAttribute: string) => {
   const [listRef, setListRef] = createSignal<HTMLUListElement>();
 
   createEffect(() => {
     const listElement = listRef();
 
     if (listElement) {
-      const selectedListElement = listElement.querySelector(
-        `[${dataAttribute}="${selectedValue()}"]`
-      );
+      const selectedListElement = listElement.querySelector(`[${dataAttribute}="${selectedValue()}"]`);
 
       if (selectedListElement instanceof HTMLElement) {
         const listHeight = listElement.clientHeight;
         const listItemYPosition = selectedListElement.offsetTop;
         const listScrollPosition = listElement.scrollTop;
 
-        if (
-          listScrollPosition + listHeight < listItemYPosition ||
-          listScrollPosition > listItemYPosition
-        ) {
+        if (listScrollPosition + listHeight < listItemYPosition || listScrollPosition > listItemYPosition) {
           listElement.scrollTo({
             // we have only 5 visible items
             // so selected item should be in the center
@@ -249,51 +222,30 @@ const DayRenderer: VoidComponent<
 
   const isDaySelected = (day: number) => day === props.selectedDay;
 
-  const getDateTimeString = (day: number) =>
-    `${props.selectedYear}-${props.selectedMonth}-${day}`;
+  const getDateTimeString = (day: number) => `${props.selectedYear}-${props.selectedMonth}-${day}`;
 
   return (
     <figure style={props.style} class="SimpleDatepicker-ListWrapper">
-      <figcaption class="SimpleDatepicker-ListCaption">
-        {props.locale.day}
-      </figcaption>
+      <figcaption class="SimpleDatepicker-ListCaption">{props.locale.day}</figcaption>
       <ul title={props.locale.day} class="SimpleDatepicker-DayGrid">
         <For each={WEEKDAYS}>
           {(_, index) => (
             <li class="SimpleDatepicker-ListItem">
-              <button
-                type="button"
-                disabled
-                class="SimpleDatepicker-Button SimpleDatepicker-Button_squared"
-              >
+              <button type="button" disabled class="SimpleDatepicker-Button SimpleDatepicker-Button_squared">
                 <span class="SimpleDatepicker-ButtonText">
-                  {
-                    props.locale[
-                      WEEKDAYS_NAMES[
-                        WEEKDAYS[(index() + props.startWeekDay) % 7]
-                      ]
-                    ]
-                  }
+                  {props.locale[WEEKDAYS_NAMES[WEEKDAYS[(index() + props.startWeekDay) % 7]]]}
                 </span>
               </button>
             </li>
           )}
         </For>
-        <For
-          each={new Array(props.daysInMonth)
-            .fill(0)
-            .map((_, index) => index + 1)}
-        >
+        <For each={new Array(props.daysInMonth).fill(0).map((_, index) => index + 1)}>
           {(day) => {
-            const dayInWeek = () =>
-              new Date(props.selectedYear, props.selectedMonth, day).getDay();
+            const dayInWeek = () => new Date(props.selectedYear, props.selectedMonth, day).getDay();
 
-            const weekInMonth = createMemo(() =>
-              getWeekOfMonth(day, props.startWeekDay, props.firstWeekDay)
-            );
+            const weekInMonth = createMemo(() => getWeekOfMonth(day, props.startWeekDay, props.firstWeekDay));
 
-            const gridColumnStart = () =>
-              (dayInWeek() + 7 - props.startWeekDay) % 7;
+            const gridColumnStart = () => (dayInWeek() + 7 - props.startWeekDay) % 7;
 
             // +1 here because we need to skip row with week days
             const gridRowStart = () => weekInMonth() + 1;
@@ -302,26 +254,20 @@ const DayRenderer: VoidComponent<
               <li
                 class="SimpleDatepicker-ListItem"
                 style={{
-                  "grid-column": `${gridColumnStart() + 1} / ${
-                    gridColumnStart() + 2
-                  }`,
+                  "grid-column": `${gridColumnStart() + 1} / ${gridColumnStart() + 2}`,
                   "grid-row": `${gridRowStart() + 1} / ${gridRowStart() + 2}`,
                 }}
               >
                 <button
                   type="button"
                   classList={{
-                    "SimpleDatepicker-Button SimpleDatepicker-Button_squared":
-                      true,
+                    "SimpleDatepicker-Button SimpleDatepicker-Button_squared": true,
                     "SimpleDatepicker-Button_selected": isDaySelected(day),
                   }}
                   disabled={isDayDisabled(day)}
                   onClick={() => props.onSelect(day)}
                 >
-                  <time
-                    class="SimpleDatepicker-ButtonText"
-                    datetime={getDateTimeString(day)}
-                  >
+                  <time class="SimpleDatepicker-ButtonText" datetime={getDateTimeString(day)}>
                     {day}
                   </time>
                 </button>
@@ -348,21 +294,14 @@ const MonthRenderer: VoidComponent<
 
   const getDateTimeString = (month: number) => `${props.selectedYear}-${month}`;
 
-  const setListRef = useScrollToListItem(
-    () => props.selectedMonth,
-    "data-month"
-  );
+  const setListRef = useScrollToListItem(() => props.selectedMonth, "data-month");
 
   return (
     <figure style={props.style} class="SimpleDatepicker-ListWrapper">
       <figcaption class="SimpleDatepicker-ListCaption SimpleDatepicker-ListCaption_withScrollbarPadding">
         {props.locale.month}
       </figcaption>
-      <ul
-        ref={setListRef}
-        title={props.locale.month}
-        class="SimpleDatepicker-List SimpleDatepicker-List_scrollable"
-      >
+      <ul ref={setListRef} title={props.locale.month} class="SimpleDatepicker-List SimpleDatepicker-List_scrollable">
         <For each={MONTHS}>
           {(month) => (
             <li class="SimpleDatepicker-ListItem" data-month={month}>
@@ -375,10 +314,7 @@ const MonthRenderer: VoidComponent<
                 disabled={isMonthDisabled(month)}
                 onClick={() => props.onSelect(month)}
               >
-                <time
-                  class="SimpleDatepicker-ButtonText"
-                  datetime={getDateTimeString(month)}
-                >
+                <time class="SimpleDatepicker-ButtonText" datetime={getDateTimeString(month)}>
                   {props.locale[MONTHS_NAMES[month] as Month]}
                 </time>
               </button>
@@ -393,10 +329,7 @@ const MonthRenderer: VoidComponent<
 const YearRenderer: VoidComponent<
   CommonRendererProps & {
     selectedYear: number;
-  } & Pick<
-      DatePickerProps,
-      "startYear" | "endYear" | "disabledYears" | "locale"
-    >
+  } & Pick<DatePickerProps, "startYear" | "endYear" | "disabledYears" | "locale">
 > = (initialProps) => {
   const props = mergeProps(
     {
@@ -407,9 +340,7 @@ const YearRenderer: VoidComponent<
   );
 
   const yearsArray = () =>
-    new Array(props.endYear - props.startYear)
-      .fill(0)
-      .map((_, index) => index + props.startYear);
+    new Array(props.endYear - props.startYear).fill(0).map((_, index) => index + props.startYear);
 
   const disabledYears = createMemo(() => new Set(props.disabledYears ?? []));
 
@@ -424,11 +355,7 @@ const YearRenderer: VoidComponent<
       <figcaption class="SimpleDatepicker-ListCaption SimpleDatepicker-ListCaption_withScrollbarPadding">
         {props.locale.year}
       </figcaption>
-      <ul
-        ref={setListRef}
-        title={props.locale.year}
-        class="SimpleDatepicker-List SimpleDatepicker-List_scrollable"
-      >
+      <ul ref={setListRef} title={props.locale.year} class="SimpleDatepicker-List SimpleDatepicker-List_scrollable">
         <For each={yearsArray()}>
           {(year) => (
             <li class="SimpleDatepicker-ListItem" data-year={year}>
@@ -453,9 +380,7 @@ const YearRenderer: VoidComponent<
   );
 };
 
-export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
-  initialProps
-) => {
+export const SimpleDatepicker: ParentComponent<DatePickerProps> = (initialProps) => {
   const props = mergeProps(
     {
       order: DEFAULT_ORDER,
@@ -492,26 +417,26 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     ...props.locale,
   }));
 
-  const handleChange = (patch: Partial<LocalDate>) =>
-    props.onChange?.(
-      new Date(
-        patch.year ?? currentYear(),
-        patch.month ?? currentMonth(),
-        patch.day ?? currentDate()
-      )
-    );
+  const handleChange = (patch: Partial<LocalDate>) => {
+    let newDate = new Date(patch.year ?? currentYear(), patch.month ?? currentMonth(), patch.day ?? currentDate());
 
-  const daysInMonth = createMemo(() =>
-    new Date(currentYear(), currentMonth() + 1, 0).getDate()
-  );
+    // handle edge cases
+    if (patch.month !== undefined && patch.month < newDate.getMonth()) {
+      newDate = new Date(currentYear(), patch.month, new Date(currentYear(), patch.month + 1, 0).getDate());
+    }
 
-  const firstWeekday = createMemo(() =>
-    new Date(currentYear(), currentMonth(), 1).getDay()
-  );
+    if (patch.year !== undefined && currentMonth() !== newDate.getMonth()) {
+      newDate = new Date(patch.year, currentMonth(), new Date(patch.year - 1, currentMonth() + 1, 0).getDate());
+    }
 
-  const weekInMonth = createMemo(() =>
-    getWeekOfMonth(daysInMonth(), props.startWeekDay, firstWeekday())
-  );
+    props.onChange?.(newDate);
+  };
+
+  const daysInMonth = createMemo(() => new Date(currentYear(), currentMonth() + 1, 0).getDate());
+
+  const firstWeekday = createMemo(() => new Date(currentYear(), currentMonth(), 1).getDay());
+
+  const weekInMonth = createMemo(() => getWeekOfMonth(daysInMonth(), props.startWeekDay, firstWeekday()));
 
   const sectionMap = {
     d: () => (
@@ -547,9 +472,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
     ),
   };
 
-  const sections = createMemo(
-    () => props.order.split("-") as DatePickerSection[]
-  );
+  const sections = createMemo(() => props.order.split("-") as DatePickerSection[]);
 
   return (
     <Dynamic
@@ -576,10 +499,7 @@ export const SimpleDatepicker: ParentComponent<DatePickerProps> = (
       </div>
       <Show when={props.footer}>
         <Dynamic
-          component={
-            props.FooterComponent ??
-            (() => <Footer locale={locale()} onDone={props.onFooterDone} />)
-          }
+          component={props.FooterComponent ?? (() => <Footer locale={locale()} onDone={props.onFooterDone} />)}
         />
       </Show>
     </Dynamic>
